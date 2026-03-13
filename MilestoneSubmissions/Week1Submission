@@ -1,0 +1,49 @@
+1. Team Number: 
+    4
+2. Team Name: 
+    Creative Computer Business
+3. Team Members:
+    Aubrey Leavenworth, Cyber1296, aule6714@colorado.edu
+    Maxwell Pricher, max-pricher, mapr3537@colorado.edu
+    Jacob Hansen, Jhawk100, jaha4859@colorado.edu
+    Giovanni Palazzolo, PobaG, gipa9573@colorado.edu
+4. Application Name: 
+    Loco-Notion
+5. Application Description:
+    An app for organizing thoughts. It would have a navbar with different sections, like a brain dump section which lets you quickly write something (potentially using voice-to-text) and stores it in a database. There would also be a goals section/to do section that could send you reminders. Additionally, there would be a study mode where academic tasks are shown one at a time to keep you focused on each individual task.
+6. Audience:
+    People with ADHD, people with disorganized thoughts, type B people.
+7. Vision Statement:
+    For type B people, Who need a better way to organize and remember their thoughts. The Loco-Notion software is a note writing app/organizer that lets you tag your notes to more effectively sort through them. Unlike typical notes apps, our product lets you filter by self-created tags to better manage your thoughts.
+8. Version Control:
+    See github repository
+9. Development Methodology:
+    Agile
+10. Communication Plan:
+    SMS for general planning, Discord for file sharing/larger uploads.
+11. Meeting Plan:
+    Team Meeting:
+        Thursday after recitation (Ends at 5:15pm), face-to-face preferred but online if needed.
+    Weekly meeting with TA:
+        Wednesdays at 5:00pm, online
+12. Use Case Diagram
+    https://drive.google.com/file/d/10G8yg7dtGBEv78Etjojj0pN8AYZ645Dn/view?usp=sharing
+13. Wireframes
+    https://drive.google.com/file/d/10G8yg7dtGBEv78Etjojj0pN8AYZ645Dn/view?usp=sharing
+
+Extra Credit. 5 Potential Risks
+1. If you are making an api call and the api is changed by the creator or changed to be paid, then the project will break.
+    Severity: 4/10 
+    Mitigation strategy: Check the api documentation frequently to catch any changes before they become a problem.
+2. If group members aren't careful with our commits, the codebase could break.
+    Severity: 3/10
+    Mitigation strategy: use branches effectively to keep commits organized.
+3. SQL and Javascript injections
+    Severity: 8/10
+    Mitigation strategy: use best practice when reading in user input.
+4. Maintaining user privacy 
+    Severity: 5/10
+    Mitigation strategy: secure database and don't store unnecessary user data.
+5. If the SQL database is organized poorly then the database would be slow at best and give incorrect data retrieval at worst.
+    Sevarity: 3/10-10/10
+    Mitigation strategy: Use separate tables for important pieces of infomation in order to make queries simpler and avoid loss of data risks.
