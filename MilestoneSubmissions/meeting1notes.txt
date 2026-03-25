@@ -1,0 +1,5 @@
+-Each person needs 3 git commits, ideally on separate days (due this Friday this week, but normally it's checked on Wednesdays)
+-Commits from the lab will count 
+-commits can be made on any branch
+-Each meeting needs team notes that are committed as a text file on GitHub
+-Rubrics for group evaluation and individual evaluation are posted on canvas 
