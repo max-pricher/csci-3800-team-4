@@ -1,0 +1,19 @@
+{{> message}} <div class="container mt-4">
+    <div class="row row-cols-1 row-cols-md-3 g-4">
+        {{#each events}} <div class="col">
+            <div class="card h-100">
+                <img src="{{#if images.[0].url}}{{images.[0].url}}{{else}}https://via.placeholder.com/300{{/if}}"
+                    class="card-img-top" alt="{{name}}">
+                <div class="card-body">
+                    <h5 class="card-title">{{name}}</h5>
+                    <p class="card-text">
+                        Date: {{dates.start.localDate}}<br>
+                        Time: {{dates.start.localTime}}
+                    </p>
+                    <a href="{{url}}" target="_blank" class="btn btn-primary mt-auto">Book Now</a>
+                </div>
+            </div>
+        </div>
+        {{/each}}
+    </div>
+</div>
