@@ -1,19 +1,41 @@
-{{> message}} <div class="container mt-4">
-    <div class="row row-cols-1 row-cols-md-3 g-4">
-        {{#each events}} <div class="col">
-            <div class="card h-100">
-                <img src="{{#if images.[0].url}}{{images.[0].url}}{{else}}https://via.placeholder.com/300{{/if}}"
-                    class="card-img-top" alt="{{name}}">
-                <div class="card-body">
-                    <h5 class="card-title">{{name}}</h5>
-                    <p class="card-text">
-                        Date: {{dates.start.localDate}}<br>
-                        Time: {{dates.start.localTime}}
-                    </p>
-                    <a href="{{url}}" target="_blank" class="btn btn-primary mt-auto">Book Now</a>
-                </div>
-            </div>
-        </div>
-        {{/each}}
-    </div>
-</div>
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{title}}</title>
+    <link rel="stylesheet" href="/resources/css/style.css">
+</head>
+
+<body>
+    <header>
+        <h1>{{title}}</h1>
+        {{#if user}}
+        <p>Signed in as {{user.name}}</p>
+        {{/if}}
+    </header>
+
+    <main>
+        <p>Welcome to the project. This is the home page.</p>
+        <nav>
+            <ul>
+                <li><a href="/">App Home</a></li>
+                {{#if user}}
+                <li><a href="/logout">Logout</a></li>
+                {{else}}
+                <li><a href="/login">Login</a></li>
+                <li><a href="/register">Register</a></li>
+                {{/if}}
+            </ul>
+        </nav>
+    </main>
+
+    <footer>
+        <p>&copy; Team 4</p>
+    </footer>
+
+    <script src="/resources/js/script.js"></script>
+</body>
+
+</html>
