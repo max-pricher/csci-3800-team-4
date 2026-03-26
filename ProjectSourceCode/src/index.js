@@ -1,12 +1,9 @@
-// link directories for css, js, and photos after all require statements
-app.use(express.static(__dirname + '/'));
-
 // *****************************************************
 // <!-- Section 1 : Import Dependencies -->
 // *****************************************************
-
 const express = require('express'); // To build an application server or API
 const app = express();
+app.use(express.static(__dirname + '/'));
 const handlebars = require('express-handlebars'); //to enable express to work with handlebars
 const Handlebars = require('handlebars'); // to include the templating engine responsible for compiling templates
 const path = require('path');
@@ -121,7 +118,7 @@ app.post('/login', async (req, res) => {
         if (passwordMatch) { // successful login
             req.session.user = user;
             req.session.save();
-            res.redirect('/discover'); // redirect to home page after successful login
+            res.redirect('/home'); // redirect to home page after successful login
         } else {
             res.render('pages/login', { message: 'Invalid username or password', error: true });
 
@@ -143,7 +140,10 @@ const auth = (req, res, next) => {
     next();
 };
 
-// discover routes
+// home routes
+app.get('/home', auth, (req, res) => {
+    res.render('pages/home', { username: req.session.user.username });
+});
 
 
 app.get('/logout', auth, (req, res) => {
