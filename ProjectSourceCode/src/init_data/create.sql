@@ -22,5 +22,6 @@ CREATE TABLE IF NOT EXISTS tags (
 );
 CREATE TABLE IF NOT EXISTS note_to_tag (
 note_id INT NOT NULL,
-tag_id INT NOT NULL
+tag_id INT NOT NULL,
+note_to_tag_key PRIMARY KEY (note_id,tag_id)--composite key
 );
