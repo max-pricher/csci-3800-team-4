@@ -157,6 +157,12 @@ app.get('/logout', auth, (req, res) => {
     });
 });
 
+// Create routes for making notes
+
+app.get('/create', auth, (req, res) => {
+    // load the create note page,
+});
+
 // *****************************************************
 // <!-- Section 5 : Start Server-->
 // *****************************************************
