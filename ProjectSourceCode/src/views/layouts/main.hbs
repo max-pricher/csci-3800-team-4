@@ -1,7 +1,25 @@
-<!-- TODO: Add the head.hbs partial here -->
-{{> head}}
-<!-- TODO: Add the nav.hbs partial here -->
-{{> nav}}
-{{{body}}}
-<!-- add footer partial here -->
-{{> footer}}
+{{!-- views/layouts/main.hbs --}}
+<!DOCTYPE html>
+<html>
+
+<head>
+    {{> head}}
+</head>
+
+<body>
+    {{> nav}}
+
+    <div class="container mt-2">
+        {{> message}}
+    </div>
+
+    <main class="container mt-4">
+        {{{body}}}
+    </main>
+
+    {{> footer}}
+
+    <script src="/ProjectSourceCode/src/resources/js/script.js"></script>
+</body>
+
+</html>
