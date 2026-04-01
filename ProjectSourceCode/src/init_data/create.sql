@@ -11,7 +11,7 @@ CREATE TABLE
         user_id INT,
         title VARCHAR(100) NOT NULL,
         body VARCHAR(200) NOT NULL,
-        time_made DATETIME NOT NULL DEFAULT (GETDATE ()),
+        time_made TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         CONSTRAINT fk_user_id FOREIGN KEY (user_id) REFERENCES users (id)
     );
 
@@ -26,8 +26,11 @@ CREATE TABLE
 
 CREATE TABLE
     IF NOT EXISTS note_to_tag (
-        note_id SERIAL PRIMARY KEY,
-        tag_id INT NOT NULL
+        note_id INT NOT NULL,
+        tag_id INT NOT NULL,
+        PRIMARY KEY (note_id,tag_id),
+        CONSTRAINT n_to_t_fkey FOREIGN KEY (note_id) REFERENCES notes(id),
+        FOREIGN KEY (tag_id) REFERENCES tags(id)
         
     );
 
