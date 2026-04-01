@@ -11,6 +11,6 @@ ORDER BY time_made DESC;
 --returns notes that have the user inputted tag + that tags info
 SELECT notes.*, tags.* FROM notes
 INNER JOIN note_to_tag ON notes.id = note_to_tag.note_id
-INNER JOIN tags ON note_to_tag.note_id=tags.id
+INNER JOIN tags ON note_to_tag.tag_id=tags.id
 WHERE tags.name=$3
 ORDER BY time_made DESC;
