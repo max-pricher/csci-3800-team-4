@@ -158,9 +158,47 @@ app.get('/logout', auth, (req, res) => {
 });
 
 // Create routes for making notes
-
+// must be signed in to use
 app.get('/create', auth, (req, res) => {
-    // load the create note page,
+    res.render('pages/create');
+});
+
+app.post('/create', auth, async (req, res) => {
+    const { title, body } = req.body; // get title and body
+    const user_id = req.session.user.id; // get user_id
+
+    const query = `INSERT INTO notes (user_id, title, body) VALUES ($1, $2, $3) RETURNING *;`;
+
+    try {
+        await db.one(query, [user_id, title, body]);
+        // Redirect to home so the user can see their list of notes
+        res.redirect('/home');
+    } catch (error) {
+        console.error('DATABASE ERROR:', error.message || error);
+        res.render('pages/create', {
+            message: 'Could not save note. Please try again.',
+            error: true
+        });
+    }
+});
+
+// Note Routes to view our notes
+app.get('/notes', auth, async (req, res) => {
+    const user_id = req.session.user.id; // get user_id
+    const query = `SELECT * FROM notes WHERE user_id = $1;`;
+    // change this one we finalize the database schema.
+
+    try {
+        const notes = await db.any(query, [user_id]);
+        res.render('pages/notes', { notes });
+    } catch (error) {
+        console.error('DATABASE ERROR:', error.message || error);
+        res.render('pages/notes', {
+            message: 'Could not retrieve notes. Please try again.',
+            error: true,
+            notes: []
+        });
+    }
 });
 
 // *****************************************************
