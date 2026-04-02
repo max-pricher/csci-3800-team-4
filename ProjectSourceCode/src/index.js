@@ -176,7 +176,9 @@ app.get('/logout', auth, (req, res) => {
 // Create routes for making notes
 // must be signed in to use
 app.get('/create', auth, (req, res) => {
-    res.render('pages/create');
+    res.render('pages/create', {
+        user: req.session.user
+    });
 });
 
 app.post('/create', auth, async (req, res) => {
@@ -194,6 +196,7 @@ app.post('/create', auth, async (req, res) => {
         console.error('DATABASE ERROR:', error.message || error);
         res.render('pages/create', {
             message: 'Could not save note. Please try again.',
+            user: req.session.user,
             error: true
         });
     }
@@ -214,10 +217,11 @@ app.get('/notes', auth, async (req, res) => {
                 timeStyle: 'short'
             })
         }));
-        res.render('pages/notes', { notes: formattedNotes });
+        res.render('pages/notes', { user: req.session.user, notes: formattedNotes });
     } catch (error) {
         console.error('DATABASE ERROR:', error.message || error);
         res.render('pages/notes', {
+            user: req.session.user,
             message: 'Could not retrieve notes. Please try again.',
             error: true,
             notes: []
@@ -234,7 +238,7 @@ app.get('/edit/:id', auth, async (req, res) => {
     try { // if someone types a fake id into the url, they can trigger any of these, so we dont want a crash for an invalid id.
         const note = await db.oneOrNone(query, [note_id, user_id]);
         if (note) {
-            res.render('pages/edit', { note }); // note found, render edit page with note data
+            res.render('pages/edit', { user: req.session.user, note }); // note found, render edit page with note data
         } else { // note not found or does not belong to user
             res.redirect('/notes');
         }
@@ -256,6 +260,7 @@ app.post('/edit/:id', auth, async (req, res) => {
             res.redirect('/notes');
         } else {
             res.render('pages/edit', {
+                user: req.session.user,
                 message: 'Could not update note. Please try again.',
                 error: true,
                 note: { note_id, title, body }
@@ -264,6 +269,7 @@ app.post('/edit/:id', auth, async (req, res) => {
     } catch (error) {
         console.error('DATABASE ERROR:', error.message || error);
         res.render('pages/edit', {
+            user: req.session.user,
             message: 'Could not update note. Please try again.',
             error: true,
             note: { note_id, title, body }
