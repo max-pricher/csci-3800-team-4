@@ -143,9 +143,22 @@ const auth = (req, res, next) => {
 
 // home routes
 app.get('/home', auth, (req, res) => {
+
+    const currentTime = new Date().getHours();
+    let greeting;
+
+    if (currentTime < 12) {
+        greeting = 'Good Morning';
+    } else if (currentTime < 18) {
+        greeting = 'Good Afternoon';
+    } else {
+        greeting = 'Good Evening';
+    }
+
     res.render('pages/home', {
         username: req.session.user.username,
-        user: req.session.user
+        user: req.session.user,
+        greeting: greeting
     }); // what we pass in to the render, can be used in a handlebars template. 
 });
 
