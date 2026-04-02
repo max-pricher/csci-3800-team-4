@@ -303,5 +303,10 @@ app.get('/test', (req, res) => {
 // <!-- Final : Start Server-->
 // *****************************************************
 // starting the server and keeping the connection open to listen for more requests
-module.exports = app.listen(3000);
-console.log('Server is listening on port 3000');
+
+const server = app.listen(3000, () => {
+    console.log('Server is listening on port 3000');
+});
+
+server.db = db;
+module.exports = server;
