@@ -105,7 +105,7 @@ app.post('/register', async (req, res, next) => {
         res.redirect('/login');
     } catch (error) { // if fail, redirect to get register
         if (error.code === '23505') {
-            return res.render('pages/register', {
+            return res.status(400).render('pages/register', {
                 message: 'User already exists.',
                 error: true
             });
@@ -291,6 +291,12 @@ app.use((err, req, res, next) => {
         error: true,
         notes: [] // pass blank note
     });
+});
+
+
+// testingggg(lab10)
+app.get('/welcome', (req, res) => {
+    res.json({ status: 'success', message: 'Welcome!' });
 });
 
 // *****************************************************
