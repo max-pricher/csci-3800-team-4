@@ -2,7 +2,13 @@
 <nav>
     <ul class="notes_list">
         {{#each notes}}
-        <li>{{this}}</li>
+        <div class="card mb-3">
+            <div class="card-body">
+                <h5 class="card-title">{{this.title}}</h5>
+                <p class="card-text">{{this.body}}</p>
+                <small class="text-muted">Created: {{this.time_made}}</small>
+            </div>
+        </div>
         {{/each}}
     </ul>
 </nav>

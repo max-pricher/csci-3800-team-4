@@ -74,21 +74,17 @@ app.use(
 // <!-- Section 4 : API Routes -->
 // *****************************************************
 
-// TODO - Include your API routes here
-// route 1, get, login, render home page,
-
 app.get('/', (req, res) => {
     res.redirect('/login'); //this will call the /login route in the API
 });
 
 app.get('/login', (req, res) => {
-    //do something
     res.render('pages/login');
 });
 
 // route 2, /register
 app.get('/register', (req, res) => {
-    res.render('pages/register'); // we dont need to pass any json data to register
+    res.render('pages/register');
 });
 
 // route 3, register async
@@ -103,37 +99,42 @@ app.post('/register', async (req, res) => {
         res.redirect('/login');
     } catch (error) { // if fail, redirect to get register
         console.error('ERROR:', error.message || error);
-        res.redirect('/register');
+        res.render('pages/register', {
+            message: 'User already exists.',
+            error: true
+        });
     }
 });
-
 
 // route for login post
 app.post('/login', async (req, res) => {
     // get username ans pass from body.
     const query = `SELECT * FROM users WHERE username = $1`; // only grab entry where username matches, 
     try {
-        const user = await db.one(query, [req.body.username]);  // tried to get username
+        const user = await db.oneOrNone(query, [req.body.username]);  // tried to get username
+        if (!user) { // did user exist?
+            return res.render('pages/register', {
+                message: 'Username not found.',
+                error: true
+            });
+        }
         const passwordMatch = await bcrypt.compare(req.body.password, user.password); // compare hash password
         if (passwordMatch) { // successful login
             req.session.user = user;
             req.session.save();
             res.redirect('/home'); // redirect to home page after successful login
         } else {
-            res.render('pages/login', { message: 'Invalid username or password', error: true });
-
+            res.render('pages/login', { message: 'Invalid password', error: true });
         }
     } catch (error) { // user not found
         console.error('ERROR:', error.message || error);
         res.redirect('/register'); // redirect to register page
     }
-
 }); // will fail if username isnt found or password is wrong.
-
 
 // Authentication Middleware.
 const auth = (req, res, next) => {
-    if (!req.session.user) {
+    if (!req.session.user) { // if user not stored locally
         // Default to login page.
         return res.redirect('/login');
     }
@@ -145,10 +146,9 @@ app.get('/home', auth, (req, res) => {
     res.render('pages/home', { username: req.session.user.username });
 });
 
-
 app.get('/logout', auth, (req, res) => {
     // 1. Destroy the session
-    req.session.destroy();
+    req.session.destroy(); // deletes local data
 
     // 2. Render the logout page with a success message
     res.render('pages/logout', {
@@ -164,15 +164,16 @@ app.get('/create', auth, (req, res) => {
 });
 
 app.post('/create', auth, async (req, res) => {
-    const { title, body } = req.body; // get title and body
-    const user_id = req.session.user.id; // get user_id
-
+    const { title, body } = req.body;
+    const user_id = req.session.user.user_id;
     const query = `INSERT INTO notes (user_id, title, body) VALUES ($1, $2, $3) RETURNING *;`;
 
     try {
-        await db.one(query, [user_id, title, body]);
-        // Redirect to home so the user can see their list of notes
-        res.redirect('/home');
+        const note = await db.one(query, [user_id, title, body]);
+
+        if (note) {
+            res.redirect('/home');
+        }
     } catch (error) {
         console.error('DATABASE ERROR:', error.message || error);
         res.render('pages/create', {
@@ -184,13 +185,20 @@ app.post('/create', auth, async (req, res) => {
 
 // Note Routes to view our notes
 app.get('/notes', auth, async (req, res) => {
-    const user_id = req.session.user.id; // get user_id
+    const user_id = req.session.user.user_id;
     const query = `SELECT * FROM notes WHERE user_id = $1;`;
-    // change this one we finalize the database schema.
 
     try {
         const notes = await db.any(query, [user_id]);
-        res.render('pages/notes', { notes });
+        const formattedNotes = notes.map(note => ({ // easy way to change the time format, can modify other fields.
+            ...note, // keep the note the same
+            time_made: new Date(note.time_made).toLocaleString('en-US', { // change the time
+                timeZone: 'America/Denver',
+                dateStyle: 'medium',
+                timeStyle: 'short'
+            })
+        }));
+        res.render('pages/notes', { notes: formattedNotes });
     } catch (error) {
         console.error('DATABASE ERROR:', error.message || error);
         res.render('pages/notes', {
