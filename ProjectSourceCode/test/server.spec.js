@@ -87,3 +87,59 @@ describe('Testing Render', () => {
             });
     });
 });
+// *********************** EXTRA CREDIT: 2 ADDITIONAL TESTS
+
+describe('Home Route Authentication Tests', () => {
+    let agent;
+    const testUser = {
+        username: 'ExtraCreditUser',
+        password: 'password123',
+    };
+
+    // Setup: Create a user in the DB before running tests
+    before(async () => {
+        try {
+            // Use pg-promise (db) to clear and insert
+            await server.db.query('DELETE FROM users WHERE username = $1', [testUser.username]);
+            const hash = await require('bcryptjs').hash(testUser.password, 10);
+            await server.db.query('INSERT INTO users (username, password) VALUES ($1, $2)', [
+                testUser.username,
+                hash,
+            ]);
+        } catch (err) {
+            console.log('Setup error:', err);
+        }
+    });
+
+    beforeEach(() => {
+        // Agent maintains cookies across multiple requests
+        agent = chai.request.agent(server);
+    });
+
+    //  Negative Test: Unauthorized Access
+    it('negative: /home. Should redirect to /login if not authenticated', done => {
+        agent
+            .get('/home')
+            .redirects(0) // Don't follow the redirect
+            .end((err, res) => {
+                expect(res).to.have.status(302);
+                expect(res).to.redirectTo(/\/login$/);
+                done();
+            });
+    });
+
+    // Positive Test: Authenticated Access
+    it('positive: /home. Should allow access after login', async () => {
+        // Step A: Login to establish session
+        await agent
+            .post('/login')
+            .send(testUser);
+
+        // Step B: Try to access /home with the session cookie
+        const res = await agent.get('/home');
+
+        expect(res).to.have.status(200);
+        expect(res.text).to.include('Good'); // Checks for your "Good Morning/Evening" greeting
+        expect(res.text).to.include(testUser.username);
+    });
+});
