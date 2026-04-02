@@ -143,7 +143,10 @@ const auth = (req, res, next) => {
 
 // home routes
 app.get('/home', auth, (req, res) => {
-    res.render('pages/home', { username: req.session.user.username });
+    res.render('pages/home', {
+        username: req.session.user.username,
+        user: req.session.user
+    }); // what we pass in to the render, can be used in a handlebars template. 
 });
 
 app.get('/logout', auth, (req, res) => {
