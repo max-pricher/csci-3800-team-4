@@ -1,13 +1,16 @@
 {{!-- views/layouts/main.hbs --}}
 <!DOCTYPE html>
-<html>
+<html lang="en" class="h-100">
 
 <head>
     {{> head}}
 </head>
 
-<body>
-    {{> nav}}
+<body class="h-100 d-flex flex-column">
+
+    <nav class="navbar navbar-expand-sm border-bottom">
+        {{> nav}}
+    </nav>
 
     <div class="container mt-2">
         {{> message}}
@@ -19,7 +22,7 @@
 
     {{> footer}}
 
-    <script src="/ProjectSourceCode/src/resources/js/script.js"></script>
+    <script src="/resources/js/script.js"></script>
 </body>
 
 </html>
