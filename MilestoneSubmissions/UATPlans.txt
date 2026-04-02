@@ -1,1 +1,25 @@
+1.)
+A user cannot register without completing all of the mandatory fields. Mandatory fields include:
+Name
+Email Address-will check for proper regEx
+Password
+Information from the form is stored in the user table in the notion_db database.
+Local host will be used to test the feature
+the development team will be the testers
+
+2.)
+A user cannot submit a note without completing these mandatory fields:
+title
+body-will check if empty
+tag
+Information from the form is stored in the notes table, tags table, and notes_to_tags table in notion_db database
+Local host will be used to test the feature
+The development team will be the testers
+
+
+3.)
+The search field accurately displays all relevant notes and tags that the user entered in the search field.
+Users' input will be stored as a positional parameter in its respective query, and all relevant notes should be returned.
+Local host will be used to test the feature
+the development team will be the testers
 
