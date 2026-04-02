@@ -105,7 +105,7 @@ app.post('/register', async (req, res, next) => {
         res.redirect('/login');
     } catch (error) { // if fail, redirect to get register
         if (error.code === '23505') {
-            return res.render('pages/register', {
+            return res.status(400).render('pages/register', {
                 message: 'User already exists.',
                 error: true
             });
@@ -293,9 +293,15 @@ app.use((err, req, res, next) => {
     });
 });
 
+
+// testingggg(lab10)
+app.get('/welcome', (req, res) => {
+    res.json({ status: 'success', message: 'Welcome!' });
+});
+
 // *****************************************************
 // <!-- Final : Start Server-->
 // *****************************************************
 // starting the server and keeping the connection open to listen for more requests
-app.listen(3000);
+module.exports = app.listen(3000);
 console.log('Server is listening on port 3000');
