@@ -101,16 +101,12 @@ app.post('/register', async (req, res, next) => {
     const query = `INSERT INTO users (username, password) VALUES ($1, $2)`;
     // if data succesfully entered, redirec to login
     try {
-        await db.none(query, [req.body.username, hash])
-        res.redirect('/login');
-    } catch (error) { // if fail, redirect to get register
+        await db.none(query, [req.body.username, hash]);
+        res.status(200).json({ message: 'Success' });
+    } catch (error) {
         if (error.code === '23505') {
-            return res.status(400).render('pages/register', {
-                message: 'User already exists.',
-                error: true
-            });
+            return res.status(400).json({ message: 'Invalid input' });
         }
-        // For anything else (DB connection, syntax error), go global
         next(error);
     }
 });
@@ -297,6 +293,10 @@ app.use((err, req, res, next) => {
 // testingggg(lab10)
 app.get('/welcome', (req, res) => {
     res.json({ status: 'success', message: 'Welcome!' });
+});
+
+app.get('/test', (req, res) => {
+    res.redirect('/login');
 });
 
 // *****************************************************
