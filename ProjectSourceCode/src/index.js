@@ -212,6 +212,52 @@ app.get('/notes', auth, async (req, res) => {
     }
 });
 
+// edit routes
+app.get('/edit/:id', auth, async (req, res) => {
+    const note_id = req.params.id;
+    const user_id = req.session.user.user_id;
+    const query = `SELECT * FROM notes WHERE note_id = $1 AND user_id = $2;`;
+
+    try { // if someone types a fake id into the url, they can trigger any of these, so we dont want a crash for an invalid id.
+        const note = await db.oneOrNone(query, [note_id, user_id]);
+        if (note) {
+            res.render('pages/edit', { note }); // note found, render edit page with note data
+        } else { // note not found or does not belong to user
+            res.redirect('/notes');
+        }
+    } catch (error) {
+        console.error('DATABASE ERROR:', error.message || error);
+        res.redirect('/notes');
+    }
+});
+
+app.post('/edit/:id', auth, async (req, res) => {
+    const note_id = req.params.id;
+    const user_id = req.session.user.user_id;
+    const { title, body } = req.body;
+    const query = `UPDATE notes SET title = $1, body = $2 WHERE note_id = $3 AND user_id = $4 RETURNING *;`; // update the title and body if permission match.
+
+    try {
+        const updatedNote = await db.oneOrNone(query, [title, body, note_id, user_id]);
+        if (updatedNote) {
+            res.redirect('/notes');
+        } else {
+            res.render('pages/edit', {
+                message: 'Could not update note. Please try again.',
+                error: true,
+                note: { note_id, title, body }
+            });
+        }
+    } catch (error) {
+        console.error('DATABASE ERROR:', error.message || error);
+        res.render('pages/edit', {
+            message: 'Could not update note. Please try again.',
+            error: true,
+            note: { note_id, title, body }
+        });
+    }
+});
+
 // *****************************************************
 // <!-- Section 5 : Start Server-->
 // *****************************************************
