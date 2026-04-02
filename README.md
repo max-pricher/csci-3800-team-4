@@ -12,6 +12,7 @@ Prerequisites to run the application - Any software that needs to be installed t
 Instructions on how to run the application locally.
 -Download the repository
 -Navigate to /ProjectSourceCode
+-Create .env file?
 -Docker compose up
 -Visit localhost:3000
 
