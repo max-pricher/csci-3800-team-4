@@ -1,0 +1,17 @@
+{{!-- similar to view notes but with prefilled and form data. --}}
+<form action="/edit/{{note.note_id}}" method="POST">
+    <div class="mb-3">
+        <label for="title" class="form-label">Title</label>
+        <input type="text" class="form-control" id="title" name="title" value="{{note.title}}" required>
+    </div>
+
+    <div class="mb-3">
+        <label for="body" class="form-label">Note Content</label>
+        <textarea class="form-control" id="body" name="body" rows="3" required>{{note.body}}</textarea>
+    </div>
+
+    <button type="submit" class="btn btn-success">Update Note</button>
+
+    <a href="/notes" class="btn btn-secondary">Cancel</a>
+
+</form>

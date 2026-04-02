@@ -70,6 +70,12 @@ app.use(
     })
 );
 
+// this line sets local variables so we dont need to pass them to every route
+app.use((req, res, next) => {
+    res.locals.user = req.session.user;
+    next();
+});
+
 // *****************************************************
 // <!-- Section 4 : API Routes -->
 // *****************************************************
@@ -88,7 +94,7 @@ app.get('/register', (req, res) => {
 });
 
 // route 3, register async
-app.post('/register', async (req, res) => {
+app.post('/register', async (req, res, next) => {
     // hash password
     const hash = await bcrypt.hash(req.body.password, 10);
     // insert user and hash passwrod to users
@@ -98,16 +104,19 @@ app.post('/register', async (req, res) => {
         await db.none(query, [req.body.username, hash])
         res.redirect('/login');
     } catch (error) { // if fail, redirect to get register
-        console.error('ERROR:', error.message || error);
-        res.render('pages/register', {
-            message: 'User already exists.',
-            error: true
-        });
+        if (error.code === '23505') {
+            return res.render('pages/register', {
+                message: 'User already exists.',
+                error: true
+            });
+        }
+        // For anything else (DB connection, syntax error), go global
+        next(error);
     }
 });
 
 // route for login post
-app.post('/login', async (req, res) => {
+app.post('/login', async (req, res, next) => {
     // get username ans pass from body.
     const query = `SELECT * FROM users WHERE username = $1`; // only grab entry where username matches, 
     try {
@@ -121,14 +130,14 @@ app.post('/login', async (req, res) => {
         const passwordMatch = await bcrypt.compare(req.body.password, user.password); // compare hash password
         if (passwordMatch) { // successful login
             req.session.user = user;
-            req.session.save();
-            res.redirect('/home'); // redirect to home page after successful login
+            req.session.save(() => {
+                res.redirect('/home'); // redirect to home page after successful login
+            });
         } else {
             res.render('pages/login', { message: 'Invalid password', error: true });
         }
     } catch (error) { // user not found
-        console.error('ERROR:', error.message || error);
-        res.redirect('/register'); // redirect to register page
+        next(error);
     }
 }); // will fail if username isnt found or password is wrong.
 
@@ -143,7 +152,22 @@ const auth = (req, res, next) => {
 
 // home routes
 app.get('/home', auth, (req, res) => {
-    res.render('pages/home', { username: req.session.user.username });
+
+    const currentTime = new Date().getHours();
+    let greeting;
+
+    if (currentTime < 12) {
+        greeting = 'Good Morning';
+    } else if (currentTime < 18) {
+        greeting = 'Good Afternoon';
+    } else {
+        greeting = 'Good Evening';
+    }
+
+    res.render('pages/home', {
+        username: req.session.user.username,
+        greeting: greeting
+    }); // what we pass in to the render, can be used in a handlebars template. 
 });
 
 app.get('/logout', auth, (req, res) => {
@@ -163,7 +187,7 @@ app.get('/create', auth, (req, res) => {
     res.render('pages/create');
 });
 
-app.post('/create', auth, async (req, res) => {
+app.post('/create', auth, async (req, res, next) => {
     const { title, body } = req.body;
     const user_id = req.session.user.user_id;
     const query = `INSERT INTO notes (user_id, title, body) VALUES ($1, $2, $3) RETURNING *;`;
@@ -175,16 +199,12 @@ app.post('/create', auth, async (req, res) => {
             res.redirect('/home');
         }
     } catch (error) {
-        console.error('DATABASE ERROR:', error.message || error);
-        res.render('pages/create', {
-            message: 'Could not save note. Please try again.',
-            error: true
-        });
+        next(error);
     }
 });
 
 // Note Routes to view our notes
-app.get('/notes', auth, async (req, res) => {
+app.get('/notes', auth, async (req, res, next) => {
     const user_id = req.session.user.user_id;
     const query = `SELECT * FROM notes WHERE user_id = $1;`;
 
@@ -200,17 +220,81 @@ app.get('/notes', auth, async (req, res) => {
         }));
         res.render('pages/notes', { notes: formattedNotes });
     } catch (error) {
-        console.error('DATABASE ERROR:', error.message || error);
-        res.render('pages/notes', {
-            message: 'Could not retrieve notes. Please try again.',
-            error: true,
-            notes: []
-        });
+        next(error);
     }
 });
 
+// edit routes
+app.get('/edit/:id', auth, async (req, res, next) => {
+    const note_id = req.params.id;
+    const user_id = req.session.user.user_id;
+    const query = `SELECT * FROM notes WHERE note_id = $1 AND user_id = $2;`;
+
+    try { // if someone types a fake id into the url, they can trigger any of these, so we dont want a crash for an invalid id.
+        const note = await db.oneOrNone(query, [note_id, user_id]);
+        if (note) {
+            res.render('pages/edit', { note }); // note found, render edit page with note data
+        } else { // note not found or does not belong to user
+            res.redirect('/notes');
+        }
+    } catch (error) {
+        next(error);
+    }
+});
+
+app.post('/edit/:id', auth, async (req, res, next) => {
+    const note_id = req.params.id;
+    const user_id = req.session.user.user_id;
+    const { title, body } = req.body;
+    const query = `UPDATE notes SET title = $1, body = $2 WHERE note_id = $3 AND user_id = $4 RETURNING *;`; // update the title and body if permission match.
+
+    try {
+        const updatedNote = await db.oneOrNone(query, [title, body, note_id, user_id]);
+        if (updatedNote) {
+            res.redirect('/notes');
+        } else {
+            res.render('pages/edit', {
+                message: 'Could not update note. Please try again.',
+                error: true,
+                note: { note_id, title, body }
+            });
+        }
+    } catch (error) {
+        next(error);
+    }
+});
+
+// delete routes
+app.post('/delete/:id', auth, async (req, res, next) => {
+    const note_id = req.params.id;
+    const user_id = req.session.user.user_id;
+    const query = `DELETE FROM notes WHERE note_id = $1 AND user_id = $2 RETURNING *;`; // returning allows us to delete the note but save it to check if it was succesfully deleted.
+
+    try {
+        const deletedNote = await db.oneOrNone(query, [note_id, user_id]);
+        res.redirect('/notes');
+    } catch (error) {
+        next(error); // This sends the error to the Global Handler automatically
+    }
+});
+
+// bonuses
+// error. catch handler to reduce redundancy.
+app.use((err, req, res, next) => {
+    console.error('GLOBAL ERROR:', err.stack);
+
+    // If they are logged in, show it on the notes page
+    const pageToRender = req.session.user ? 'pages/notes' : 'pages/login';
+
+    res.status(500).render(pageToRender, {
+        message: 'Something went wrong. Please try again.',
+        error: true,
+        notes: [] // pass blank note
+    });
+});
+
 // *****************************************************
-// <!-- Section 5 : Start Server-->
+// <!-- Final : Start Server-->
 // *****************************************************
 // starting the server and keeping the connection open to listen for more requests
 app.listen(3000);
