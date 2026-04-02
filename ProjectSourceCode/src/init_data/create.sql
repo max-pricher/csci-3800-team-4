@@ -56,3 +56,10 @@ CREATE TABLE
     FOREIGN KEY (note_id) REFERENCES notes(note_id) ON DELETE CASCADE,
     FOREIGN KEY (task_id) REFERENCES tasks(task_id) ON DELETE CASCADE
 );
+-- User: test pwd: test
+INSERT INTO users (username, password) VALUES --default user
+('test', '$2a$10$U4PAZogU0ClBWhLzm4EirOF6KATKp6rTGqo7l2g0tW96j60NvEZkW');
+
+INSERT INTO notes (user_id, title, body) VALUES
+(1, 'Test Note 1', 'This is the body of our first test note 1.'),
+(1, 'Test Note 2', 'This is the body of our second test note, but im gonna make this one just a little bit longer, if thats ok with you. Ok. what should i talk about. Do you guys like dogs?.');
