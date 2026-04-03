@@ -274,6 +274,10 @@ app.post('/delete/:id', auth, async (req, res, next) => {
     }
 });
 
+// about routes
+app.get('/about', (req, res) => {
+    res.render('pages/about');
+});
 // bonuses
 // error. catch handler to reduce redundancy.
 app.use((err, req, res, next) => {
