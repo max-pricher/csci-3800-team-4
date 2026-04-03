@@ -1,9 +1,7 @@
-// ********************** Initialize server **********************************
-
+// Initialize server
 const server = require('../src/index');
 
-// ********************** Import Libraries ***********************************
-
+//Import Libraries
 const chai = require('chai'); // Chai HTTP provides an interface for live integration testing of the API's.
 const chaiHttp = require('chai-http');
 chai.should();
@@ -11,7 +9,6 @@ chai.use(chaiHttp);
 const { assert, expect } = chai;
 
 // ********************** DEFAULT WELCOME TESTCASE ****************************
-
 describe('Server!', () => {
     // Sample test case given to test / endpoint.
     it('Returns the default welcome message', done => {
@@ -28,9 +25,6 @@ describe('Server!', () => {
 });
 
 // *********************** TODO: WRITE 2 UNIT TESTCASES **************************
-
-// ********************************************************************************
-
 // Positive Test Case
 describe('Testing Register API', () => {
     it('positive : /register', done => {
@@ -46,7 +40,7 @@ describe('Testing Register API', () => {
     });
 
     // Negative Test Case
-    it('Negative : /register. Checking duplicate user', done => {
+    it('negative : /register. Checking duplicate user', done => {
         chai
             .request(server)
             .post('/register')

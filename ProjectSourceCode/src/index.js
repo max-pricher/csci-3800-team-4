@@ -107,7 +107,7 @@ app.post('/register', async (req, res, next) => {
         if (error.code === '23505') {
             return res.status(400).json({ message: 'Invalid input' });
         }
-        next(error);
+        next(error); // when we pass an arg to next, it searches for an error handler.
     }
 });
 
@@ -262,8 +262,8 @@ app.post('/edit/:id', auth, async (req, res, next) => {
 
 // delete routes
 app.post('/delete/:id', auth, async (req, res, next) => {
-    const note_id = req.params.id;
-    const user_id = req.session.user.user_id;
+    const note_id = req.params.id; // get id of note
+    const user_id = req.session.user.user_id; // get logged in user
     const query = `DELETE FROM notes WHERE note_id = $1 AND user_id = $2 RETURNING *;`; // returning allows us to delete the note but save it to check if it was succesfully deleted.
 
     try {
@@ -274,6 +274,10 @@ app.post('/delete/:id', auth, async (req, res, next) => {
     }
 });
 
+// about routes
+app.get('/about', (req, res) => {
+    res.render('pages/about');
+});
 // bonuses
 // error. catch handler to reduce redundancy.
 app.use((err, req, res, next) => {
@@ -289,7 +293,6 @@ app.use((err, req, res, next) => {
     });
 });
 
-
 // testingggg(lab10)
 app.get('/welcome', (req, res) => {
     res.json({ status: 'success', message: 'Welcome!' });
@@ -299,9 +302,7 @@ app.get('/test', (req, res) => {
     res.redirect('/login');
 });
 
-// *****************************************************
 // <!-- Final : Start Server-->
-// *****************************************************
 // starting the server and keeping the connection open to listen for more requests
 
 const server = app.listen(3000, () => {
