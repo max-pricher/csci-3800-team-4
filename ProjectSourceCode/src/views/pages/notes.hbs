@@ -1,3 +1,6 @@
+<form action="/notes" method="GET">
+    <input type="search" name="search" value="{{search}}" placeholder="Search notes" aria-label="Search notes">
+</form>
 <p>Welcome to your notes. {{user.username}}</p>
 <section id="notes-container">
     <ul class="list-unstyled"> {{#each notes}}
