@@ -202,6 +202,7 @@ app.post('/create', auth, async (req, res, next) => {
 // Note Routes to view our notes
 app.get('/notes', auth, async (req, res, next) => {
     const user_id = req.session.user.user_id;
+    // Support simple keyword search across note titles and bodies.
     const search = (req.query.search || '').trim();
     const query = `
         SELECT * FROM notes
