@@ -14,3 +14,8 @@ INNER JOIN note_to_tag ON notes.id = note_to_tag.note_id
 INNER JOIN tags ON note_to_tag.tag_id=tags.id
 WHERE tags.name=$3
 ORDER BY time_made DESC;
+
+--get list of tasks ordered by due_at but will show nulls first
+SELECT *
+FROM tasks
+ORDER BY due_at ASC NULLS FIRST;
