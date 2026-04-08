@@ -24,7 +24,7 @@ CREATE TABLE
         CONSTRAINT fk_user_id FOREIGN KEY (user_id) REFERENCES users(user_id)
 );
 
-CREATE TABLE 
+CREATE TABLE
     IF NOT EXISTS note_to_tag (
         note_id INT NOT NULL,
         tag_id INT NOT NULL,
@@ -60,13 +60,26 @@ CREATE TABLE
 INSERT INTO users (username, password) VALUES --default user
 ('test', '$2a$10$U4PAZogU0ClBWhLzm4EirOF6KATKp6rTGqo7l2g0tW96j60NvEZkW');
 
+-- test notes
 INSERT INTO notes (user_id, title, body) VALUES
 (1, 'Test Note 1', 'This is the body of our first test note 1.'),
 (1, 'Test Note 2', 'This is the body of our second test note, but im gonna make this one just a little bit longer, if thats ok with you. Ok. what should i talk about. Do you guys like dogs?.'),
 (1, 'Lorem Ipsum', 'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.');
 
+-- Users own the tags they create. Notes are linked to the tag.
 INSERT INTO tags (user_id, name, color) VALUES
-(1, 'Test Tag 1', '#FFC0CB');
+-- assign first user, pink tag
+(1, 'Test Tag pink', '#FFC0CB'),
+-- assing firs user blue tag,
+(1, 'Test Tag blue', '#ADD8E6'),
+(1, 'Test Tag green', '#90EE90');
 
-INSERT INTO note_to_tag (note_id, tag_id) VALUES
+-- Insert into the first note, the first tag
+INSERT INTO note_to_tag (note_id, tag_id) VALUES 
 (1,1);
+-- Insert into the first note, the second tag
+INSERT INTO note_to_tag (note_id, tag_id) VALUES
+(1,2);
+-- Insert into the second note, the third tag
+INSERT INTO note_to_tag (note_id, tag_id) VALUES
+(2,3);
