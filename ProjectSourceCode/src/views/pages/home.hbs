@@ -1,41 +1,18 @@
-<!DOCTYPE html>
-<html lang="en">
+<p>{{greeting}}, {{user.username}}!</p>
 
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{{title}}</title>
-    <link rel="stylesheet" href="/resources/css/style.css">
-</head>
 
-<body>
-    <header>
-        <h1>{{title}}</h1>
+<nav>
+    <ul>
+        <li>Use the links below to access your account and interact with Loconotion.</li>
+        <li><a href="/">App Home</a></li>
         {{#if user}}
-        <p>Signed in as {{user.name}}</p>
+        <li><a href="/logout">Logout</a></li>
+        <li><a href="/create">Create Note</a></li>
+        <li><a href="/notes">View Notes</a></li>
+        {{else}}
+        <li><a href="/login">Login</a></li>
+        <li><a href="/register">Register</a></li>
         {{/if}}
-    </header>
 
-    <main>
-        <p>Welcome to the project. This is the home page.</p>
-        <nav>
-            <ul>
-                <li><a href="/">App Home</a></li>
-                {{#if user}}
-                <li><a href="/logout">Logout</a></li>
-                {{else}}
-                <li><a href="/login">Login</a></li>
-                <li><a href="/register">Register</a></li>
-                {{/if}}
-            </ul>
-        </nav>
-    </main>
-
-    <footer>
-        <p>&copy; Team 4</p>
-    </footer>
-
-    <script src="/resources/js/script.js"></script>
-</body>
-
-</html>
+    </ul>
+</nav>

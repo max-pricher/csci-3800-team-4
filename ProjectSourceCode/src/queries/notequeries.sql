@@ -19,16 +19,11 @@ SELECT notes.*, users.name
 --returns notes that have the user inputted tag + that tags info
 SELECT notes.*, tags.* FROM notes
 INNER JOIN note_to_tag ON notes.id = note_to_tag.note_id
-INNER JOIN tags ON note_to_tag.note_id=tags.id
-WHERE tags.name=$1
+INNER JOIN tags ON note_to_tag.tag_id=tags.id
+WHERE tags.name=$3
 ORDER BY time_made DESC;
 
---return task from due date
-SELECT * FROM tasks
-WHERE DATE tasks.due_at =$1
-ORDER BY due_at DESC;
-
---return task from piece of body
-SELECT * FROM tasks
-WHERE body ILIKE $1 --ILIKE is case-insensitive
-ORDER BY time_made DESC;
+--get list of tasks ordered by due_at but will show nulls first
+SELECT *
+FROM tasks
+ORDER BY due_at ASC NULLS FIRST;

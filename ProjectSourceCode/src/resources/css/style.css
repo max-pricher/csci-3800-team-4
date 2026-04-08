@@ -1,0 +1,86 @@
+:root {
+    /* Default color palette */
+    --bg-color: #F8F9F1;
+    --text-color: #141115;
+    --card-bg: #93867F;
+    --accent-color: #c2c2c2;
+    --main-font: "parabolica", sans-serif;
+}
+
+body.dark-theme {
+    --bg-color: #141115;
+    --text-color: #F8F9F1;
+    --card-bg: #3891A6;
+    --accent-color: #485696;
+}
+
+body,
+html {
+    background-color: var(--bg-color) !important;
+    color: var(--text-color) !important;
+    font-family: "parabolica", sans-serif !important;
+    font-weight: 400 !important;
+    font-style: normal !important;
+    transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+.navbar-brand,
+.nav-link {
+    color: var(--text-color) !important;
+    opacity: 0.8;
+    transition: opacity 0.2s ease;
+}
+
+input,
+button,
+textarea,
+select,
+.btn,
+.form-control {
+    font-family: var(--main-font) !important;
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+.card-title {
+    font-family: var(--main-font);
+    font-weight: 700;
+    /* Assuming Parabolica has a 700 weight in your kit */
+}
+
+.note-card {
+    background-color: var(--card-bg) !important;
+    border: 1px solid var(--accent-color) !important;
+}
+
+main {
+    max-width: 720px;
+    margin: 2rem auto;
+    padding: 0 1rem;
+}
+
+.card {
+    /* bootstrap override */
+    background-color: var(--card-bg) !important;
+    color: var(--text-color) !important;
+    border: 1px solid var(--accent-color) !important;
+}
+
+.form-control {
+    background-color: var(--card-bg) !important;
+    color: var(--text-color) !important;
+    border-color: var(--accent-color) !important;
+}
+
+.form-control:focus {
+    background-color: var(--card-bg) !important;
+    color: var(--text-color) !important;
+    filter: brightness(1.2) !important;
+}
+
+.text-muted {
+    color: #a0a0a0 !important;
+}

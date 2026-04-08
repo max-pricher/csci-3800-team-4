@@ -1,7 +1,30 @@
-<!-- TODO: Add the head.hbs partial here -->
-{{> head}}
-<!-- TODO: Add the nav.hbs partial here -->
-{{> nav}}
-{{{body}}}
-<!-- add footer partial here -->
-{{> footer}}
+{{!-- views/layouts/main.hbs --}}
+<!DOCTYPE html>
+<html lang="en" class="h-100">
+
+<head>
+    {{> head}}
+</head>
+
+<body class="h-100 d-flex flex-column">
+
+    <nav class="navbar navbar-expand-sm border-bottom">
+        {{> nav}}
+    </nav>
+
+    <div class="container mt-2">
+        {{> message}}
+    </div>
+
+    <main class="container mt-4">
+        {{{body}}}
+    </main>
+
+    <footer class="text-center text-muted w-100 mt-auto fixed-bottom">
+        {{> footer}}
+    </footer>
+
+    <script src="/resources/js/script.js"></script>
+</body>
+
+</html>
