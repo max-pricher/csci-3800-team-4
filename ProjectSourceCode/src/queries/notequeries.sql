@@ -27,3 +27,36 @@ ORDER BY time_made DESC;
 SELECT *
 FROM tasks
 ORDER BY due_at ASC NULLS FIRST;
+
+--return task from due date
+SELECT * FROM tasks
+WHERE DATE due_at::date =$1--input must be a date or string in "yyyy-mm-dd" form
+ORDER BY due_at DESC;
+
+--return task from piece of body
+SELECT * FROM tasks
+WHERE user_id=$1
+ AND body ILIKE $1 --add % to parameter value like $1=%value%
+ORDER BY time_made DESC;
+
+--get all tasks for a user
+SELECT * FROM tasks
+WHERE user_id=$1
+ORDER BY time_made DESC;
+
+--get tasks due within the next X number of days
+SELECT * FROM tasks
+WHERE user_id=$1
+ AND due_at BETWEEN NOW() AND (NOW()+ $2::INTERVAL)--$2 should be a string like '1 day','7 day'
+ORDER BY due_at DESC;
+
+--get overdue tasks
+SELECT * FROM tasks
+WHERE user_id=$1
+ AND due_at<NOW()
+ORDER BY due_at ASC;
+
+--get num current tasks and overdue tasks
+SELECT COUNT(*) FILTER (WHERE due_at>NOW()) AS current_tasks,  COUNT(*) FILTER (WHERE due_at<NOW() ) AS overdue_tasks
+FROM tasks
+WHERE user_id=$1;

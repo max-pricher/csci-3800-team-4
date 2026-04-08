@@ -39,7 +39,7 @@ CREATE TABLE
         user_id INT NOT NULL,
         body VARCHAR(200) NOT NULL,
         time_made TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-        due_at TIMESTAMP,
+        due_at TIMESTAMP NOT NULL,
         will_remind BOOLEAN DEFAULT FALSE,
         CONSTRAINT reminder_needs_duedate CHECK (
             NOT will_remind
