@@ -14,7 +14,6 @@ CREATE TABLE
         time_made TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         CONSTRAINT fk_user_id FOREIGN KEY (user_id) REFERENCES users (id)
     );
-
 CREATE TABLE
     IF NOT EXISTS tags (
         id SERIAL PRIMARY KEY,
