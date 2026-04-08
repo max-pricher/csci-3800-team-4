@@ -202,10 +202,16 @@ app.post('/create', auth, async (req, res, next) => {
 // Note Routes to view our notes
 app.get('/notes', auth, async (req, res, next) => {
     const user_id = req.session.user.user_id;
-    const query = `SELECT * FROM notes WHERE user_id = $1;`;
+    // Support simple keyword search across note titles and bodies.
+    const search = (req.query.search || '').trim();
+    const query = `
+        SELECT * FROM notes
+        WHERE user_id = $1 AND ($2 = '' OR title ILIKE '%' || $2 || '%' OR body ILIKE '%' || $2 || '%')
+        ORDER BY time_made DESC;
+    `;
 
     try {
-        const notes = await db.any(query, [user_id]);
+        const notes = await db.any(query, [user_id, search]);
         const formattedNotes = notes.map(note => ({ // easy way to change the time format, can modify other fields.
             ...note, // keep the note the same
             time_made: new Date(note.time_made).toLocaleString('en-US', { // change the time
@@ -214,7 +220,7 @@ app.get('/notes', auth, async (req, res, next) => {
                 timeStyle: 'short'
             })
         }));
-        res.render('pages/notes', { notes: formattedNotes });
+        res.render('pages/notes', { notes: formattedNotes, search });
     } catch (error) {
         next(error);
     }
