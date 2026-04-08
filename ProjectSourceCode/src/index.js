@@ -299,6 +299,35 @@ app.use((err, req, res, next) => {
     });
 });
 
+//Export routes
+app.get('/export/:id', auth, async (req, res, next) => {
+    const note_id = req.params.id;
+    const user_id = req.session.user.user_id;
+    const query = `SELECT * FROM notes WHERE note_id = $1 AND user_id = $2;`; // match this query to edit route
+
+    try {
+        const note = await db.oneOrNone(query, [note_id, user_id]);
+        if (note) {
+            const data = { // convert data to JSON
+                title: note.title,
+                body: note.body,
+                time_made: note.time_made
+                // add properties once added to db
+            }
+            res.attachment(`${data.title + '_' + data.time_made}.json`); // set the file name for download
+            res.json(data); // send the note data as JSON for download
+
+        } else {
+            res.render('/notes', {
+                message: 'Error exporting note. Please try again.',
+                error: true
+            });
+        }
+    } catch (error) {
+        next(error);
+    }
+});
+
 // testingggg(lab10)
 app.get('/welcome', (req, res) => {
     res.json({ status: 'success', message: 'Welcome!' });
