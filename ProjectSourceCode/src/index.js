@@ -58,7 +58,7 @@ app.use(bodyParser.json()); // specify the usage of JSON for parsing request bod
 // initialize session variables
 app.use(
     session({
-        secret: process.env.SESSION_SECRET,
+        secret: process.env.SESSION_SECRET || 'super_secret_key', //fall back if not found.
         saveUninitialized: false,
         resave: false,
     })
@@ -81,7 +81,7 @@ app.use((req, res, next) => {
 // *****************************************************
 
 app.get('/', (req, res) => {
-    res.redirect('/login'); //this will call the /login route in the API
+    res.render('pages/login');; //this will call the /login route in the API
 });
 
 app.get('/login', (req, res) => {
@@ -308,20 +308,19 @@ app.get('/export/:id', auth, async (req, res, next) => {
     try {
         const note = await db.oneOrNone(query, [note_id, user_id]);
         if (note) {
+            const timestamp = new Date(note.time_made).getTime();
+            const safeTitle = note.title.replace(/\s+/g, '_').toLowerCase(); // title conversion for wider support.
             const data = { // convert data to JSON
                 title: note.title,
                 body: note.body,
                 time_made: note.time_made
                 // add properties once added to db
             }
-            res.attachment(`${data.title + '_' + data.time_made}.json`); // set the file name for download
+            res.attachment(`${safeTitle}_ ${timestamp}.json`); // set the file name for download
             res.json(data); // send the note data as JSON for download
 
         } else {
-            res.render('/notes', {
-                message: 'Error exporting note. Please try again.',
-                error: true
-            });
+            throw new Error('Note not found or you do not have permission to export it.');
         }
     } catch (error) {
         next(error);
