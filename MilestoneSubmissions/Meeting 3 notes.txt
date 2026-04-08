@@ -1,0 +1,7 @@
+Meeting 3 notes:
+-consider changing color contrast (want a ratio of 4.5)
+-otherwise user interface looks solid for where we are at 
+-keep project board updated with tasks that you are working on
+-about halfway through the project currently
+-look at project guide for all specific criteria for project submission
+-tomorrows lab is exclusively for working on project (attendance mandatory)
