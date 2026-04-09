@@ -32,6 +32,9 @@
                             </form>
                             <a href="/export/{{this.note_id}}" class="btn btn-sm btn-primary">Export</a>
                             <a href="/edit/{{this.note_id}}" class="btn btn-sm btn-primary">Edit</a>
+                            <button class="btn btn-sm btn-primary" onclick="displayTags(this, {{this.note_id}})">
+                                Tags
+                            </button>
                         </div>
                     </div>
                 </div>
@@ -39,3 +42,13 @@
         </li> {{/each}}
     </ul>
 </section>
+
+{{!-- Tags Container --}}
+<div id="tags-container" style="display:none;">
+    <div id="tag-list" class="d-flex flex-column gap-1">
+    </div>
+    <hr class="my-2 border-secondary">
+    <button id="add-tag-button" class="btn btn-sm btn-outline-light w-100">
+        + Create New Tag
+    </button>
+</div>

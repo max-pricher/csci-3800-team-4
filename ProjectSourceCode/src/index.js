@@ -327,6 +327,78 @@ app.get('/export/:id', auth, async (req, res, next) => {
     }
 });
 
+// Tag routes (fetching, assigning, creating)
+// fetch all notes from a tag (for assigning tag visualization)
+//  GET route to fetch the Master List and Current Note Status as JSON
+app.get('/api/tags/:id', auth, async (req, res) => {
+    const note_id = req.params.id;
+    const user_id = req.session.user.user_id;
+
+    try {
+        // masterList: get every tag name the user owns
+        const allTags = await db.any('SELECT * FROM tags WHERE user_id = $1', [user_id]);
+
+        // make DB call, find all active tags for this note, return list of tag ids that are active for this note
+        const tagIdsJson = await db.any('SELECT tag_id FROM note_to_tag WHERE note_id = $1', [note_id]);
+        const currentTagIds = tagIdsJson.map(link => link.tag_id);
+
+        res.json({ allTags, currentTagIds });
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+});
+
+//  POST route to handle checkbox toggling and sync to DB
+app.post('/api/tags/:id/toggle', auth, async (req, res) => {
+    const note_id = req.params.id;
+    const { tag_id, action } = req.body; // action is 'link' or 'unlink'
+
+    try {
+        if (action === 'link') {
+            await db.none(
+                'INSERT INTO note_to_tag (note_id, tag_id) VALUES ($1, $2) ON CONFLICT DO NOTHING',
+                [note_id, tag_id]
+            );
+        } else {
+            await db.none(
+                'DELETE FROM note_to_tag WHERE note_id = $1 AND tag_id = $2',
+                [note_id, tag_id]
+            );
+        }
+        res.json({ success: true });
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+});
+
+// post route to create new tag
+app.post('/api/tags/:id/add', auth, async (req, res) => {
+    const note_id = req.params.id;
+    const user_id = req.session.user.user_id;
+    const { tag_name, tag_color } = req.body;
+
+    try {
+        // Insert the tag (or find it if it exists, were updating the name just to recieve the id back)
+        const tag = await db.one(
+            `INSERT INTO tags (user_id, name, color) 
+             VALUES ($1, $2, $3) 
+             ON CONFLICT (user_id, name) DO UPDATE SET name = EXCLUDED.name 
+             RETURNING tag_id`,
+            [user_id, tag_name, tag_color]
+        );
+
+        //  Link it to the note
+        await db.none(
+            'INSERT INTO note_to_tag (note_id, tag_id) VALUES ($1, $2) ON CONFLICT DO NOTHING',
+            [note_id, tag.tag_id]
+        );
+
+        res.json({ success: true, tag_id: tag.tag_id });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ error: "Failed to create or link tag" });
+    }
+});
 // testingggg(lab10)
 app.get('/welcome', (req, res) => {
     res.json({ status: 'success', message: 'Welcome!' });

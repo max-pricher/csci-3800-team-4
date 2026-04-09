@@ -21,7 +21,8 @@ CREATE TABLE
         user_id INT NOT NULL,
         name VARCHAR(100) NOT NULL,
         color VARCHAR(7) NOT NULL, --should be a hex color input like #33ddff
-        CONSTRAINT fk_user_id FOREIGN KEY (user_id) REFERENCES users(user_id)
+        CONSTRAINT fk_user_id FOREIGN KEY (user_id) REFERENCES users(user_id),
+        CONSTRAINT unique_user_tag UNIQUE (user_id, name)
 );
 
 CREATE TABLE

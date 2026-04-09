@@ -2,7 +2,7 @@
     /* Default color palette */
     --bg-color: #F8F9F1;
     --text-color: #141115;
-    --card-bg: #93867F;
+    --card-bg: #BBB2AF;
     --accent-color: #c2c2c2;
     --main-font: "parabolica", sans-serif;
 }
@@ -83,4 +83,43 @@ main {
 
 .text-muted {
     color: #a0a0a0 !important;
+}
+
+/* tags stuff */
+/* Position the card-body relatively so the menu "pins" to it */
+.card-body {
+    position: relative;
+}
+
+#tags-container {
+    position: absolute;
+    top: 100%;
+    right: 1rem;
+    z-index: 1050;
+
+    width: 200px;
+    padding: 12px;
+
+    background-color: var(--card-bg) !important;
+    border: 1px solid var(--accent-color);
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+
+    display: none;
+    flex-direction: column;
+}
+
+.note-tag-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 4px 0;
+    cursor: pointer;
+    font-size: 0.9rem;
+}
+
+.note-tag-item input[type="checkbox"] {
+    width: 16px;
+    height: 16px;
+    accent-color: var(--accent-color);
 }
