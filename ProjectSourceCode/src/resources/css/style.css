@@ -1,8 +1,8 @@
 :root {
     /* Default color palette */
-    --bg-color: #F8F9F1;
+    --bg-color: #FFF1E3;
     --text-color: #141115;
-    --card-bg: #BBB2AF;
+    --card-bg: #BAAAA5;
     --accent-color: #c2c2c2;
     --main-font: "parabolica", sans-serif;
 }
