@@ -16,7 +16,6 @@ const axios = require('axios'); // To make HTTP requests from our server. We'll 
 // *****************************************************
 // <!-- Section 2 : Connect to DB -->
 // *****************************************************
-
 // create `ExpressHandlebars` instance and configure the layouts and partials dir.
 const hbs = handlebars.create({
     extname: 'hbs',
@@ -99,15 +98,18 @@ app.post('/register', async (req, res, next) => {
     const hash = await bcrypt.hash(req.body.password, 10);
     // insert user and hash passwrod to users
     const query = `INSERT INTO users (username, password) VALUES ($1, $2)`;
-    // if data succesfully entered, redirec to login
+    // if data succesfully entered, redirect to login
     try {
         await db.none(query, [req.body.username, hash]);
-        res.status(200).json({ message: 'Success' });
+        res.redirect('/login'); // success: go to login
     } catch (error) {
         if (error.code === '23505') {
-            return res.status(400).json({ message: 'Invalid input' });
+            return res.render('pages/register', {
+                message: 'Username already taken.',
+                error: true
+            });
         }
-        next(error); // when we pass an arg to next, it searches for an error handler.
+        next(error);
     }
 });
 
