@@ -1,0 +1,12 @@
+<form action="/editTask/{{task.task_id}}" method="POST">
+    
+    <div class="mb-3">
+        <label for="body" class="form-label">Task Content</label>
+        <textarea class="form-control" id="body" name="body" rows="3" required>{{tasks.body}}</textarea>
+    </div>
+
+    <button type="submit" class="btn btn-success">Update Task</button>
+
+    <a href="/notes" class="btn btn-secondary">Cancel</a>
+
+</form>

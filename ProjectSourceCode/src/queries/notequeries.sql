@@ -44,16 +44,25 @@ SELECT * FROM tasks
 WHERE user_id=$1
 ORDER BY time_made DESC;
 
---get tasks due within the next X number of days
+--get tasks due within the next Week
 SELECT * FROM tasks
 WHERE user_id=$1
- AND due_at BETWEEN NOW() AND (NOW()+ $2::INTERVAL)--$2 should be a string like '1 day','7 day'
-ORDER BY due_at DESC;
+ AND due_at BETWEEN NOW() AND (NOW()+ '7 days'::INTERVAL)
+ AND ($2='' OR body ILIKE '%' || $2 || '%')
+ORDER BY due_at ASC;
+
+--get tasks due past the next Week
+SELECT * FROM tasks
+WHERE user_id=$1
+ AND due_at > (NOW()+ '7 days'::INTERVAL)
+ AND ($2='' OR body ILIKE '%' || $2 || '%')
+ORDER BY due_at ASC;
 
 --get overdue tasks
 SELECT * FROM tasks
 WHERE user_id=$1
  AND due_at<NOW()
+ AND ($2='' OR body ILIKE '%' || $2 || '%')
 ORDER BY due_at ASC;
 
 --get num current tasks and overdue tasks
