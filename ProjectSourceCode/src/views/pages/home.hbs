@@ -1,5 +1,27 @@
 <p>{{greeting}}, {{user.username}}!</p>
 
+<section id="recent-container" class="container">
+    <h5 class="mb-3">Recently Added</h5>
+    <div class="row row-cols-1 row-cols-md-3 g-3">
+        {{#each notes}}
+        <div class="col">
+            <div class="card h-100">
+                <div class="card-body d-flex flex-column p-2">
+                    <h6 class="card-title text-truncate mb-1">{{this.title}}</h6>
+                    <p class="card-text small text-truncate mb-2">{{this.body}}</p>
+                    <div class="d-flex justify-content-between align-items-center mt-auto">
+                        <small class="text-muted" style="font-size: 0.7rem;">{{this.time_made}}</small>
+                        <div class="d-flex gap-1">
+                            <a href="/edit/{{this.note_id}}" class="btn btn-sm btn-primary py-0 px-1">Edit</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {{/each}}
+    </div>
+    <a href="/notes" class="btn btn-outline-primary w-100 mt-3">View All Notes</a>
+</section>
 
 <nav>
     <ul>
