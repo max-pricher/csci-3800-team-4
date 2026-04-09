@@ -147,7 +147,7 @@ const auth = (req, res, next) => {
 };
 
 // home routes
-app.get('/home', auth, (req, res) => {
+app.get('/home', auth, async (req, res) => {
 
     const currentTime = new Date().getHours();
     let greeting;
@@ -160,10 +160,24 @@ app.get('/home', auth, (req, res) => {
         greeting = 'Good Evening';
     }
 
-    res.render('pages/home', {
-        username: req.session.user.username,
-        greeting: greeting
-    }); // what we pass in to the render, can be used in a handlebars template. 
+    try {
+        const user_id = req.session.user.user_id;
+        const notes = await db.any(
+            'SELECT * FROM notes WHERE user_id = $1 ORDER BY time_made DESC LIMIT 5',
+            [user_id]
+        );
+        const formattedNotes = notes.map(note => ({
+            ...note,
+            time_made: new Date(note.time_made).toLocaleString('en-US', {
+                timeZone: 'America/Denver',
+                dateStyle: 'medium',
+                timeStyle: 'short'
+            })
+        }));
+        res.render('pages/home', { greeting, notes: formattedNotes });
+    } catch (error) {
+        next(error);
+    }
 });
 
 app.get('/logout', auth, (req, res) => {
