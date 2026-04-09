@@ -2,7 +2,7 @@
     /* Default color palette */
     --bg-color: #FFF1E3;
     --text-color: #141115;
-    --card-bg: #BAAAA5;
+    --card-bg: #C4957A;
     --accent-color: #c2c2c2;
     --main-font: "parabolica", sans-serif;
 }
@@ -10,8 +10,8 @@
 body.dark-theme {
     --bg-color: #141115;
     --text-color: #F8F9F1;
-    --card-bg: #3891A6;
-    --accent-color: #485696;
+    --card-bg: #6E1F22;
+    --accent-color: #300D0F;
 }
 
 body,
@@ -69,10 +69,18 @@ main {
     border: 1px solid var(--accent-color) !important;
 }
 
-.form-control {
-    background-color: var(--card-bg) !important;
+.form-control,
+.form-control:focus,
+input[type="search"] {
     color: var(--text-color) !important;
+    background-color: var(--card-bg) !important;
     border-color: var(--accent-color) !important;
+}
+
+/* Fix the Placeholder text color so it's readable */
+.form-control::placeholder {
+    color: var(--text-color);
+    opacity: 0.6;
 }
 
 .form-control:focus {
@@ -81,8 +89,10 @@ main {
     filter: brightness(1.2) !important;
 }
 
-.text-muted {
-    color: #a0a0a0 !important;
+.text-muted,
+small.text-muted {
+    color: var(--text-color) !important;
+    opacity: 0.7;
 }
 
 /* tags stuff */
@@ -122,4 +132,15 @@ main {
     width: 16px;
     height: 16px;
     accent-color: var(--accent-color);
+}
+
+footer,
+footer p,
+footer span {
+    color: var(--text-color) !important;
+}
+
+input[type="search"] {
+    color: var(--text-color) !important;
+    -webkit-text-fill-color: var(--text-color) !important;
 }
