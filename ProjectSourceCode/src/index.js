@@ -98,7 +98,7 @@ app.post('/register', async (req, res, next) => {
     const hash = await bcrypt.hash(req.body.password, 10);
     // insert user and hash passwrod to users
     const query = `INSERT INTO users (username, password) VALUES ($1, $2)`;
-    // if data succesfully entered, redirect to login
+    // if data succesfully entered, redirec to login
     try {
         await db.none(query, [req.body.username, hash]);
         res.redirect('/login'); // success: go to login
@@ -344,6 +344,25 @@ app.get('/export/:id', auth, async (req, res, next) => {
 });
 
 // Tag routes (fetching, assigning, creating)
+
+// GET tags belonging to a specific note
+app.get('/api/tags/note/:id', auth, async (req, res) => {
+    const note_id = req.params.id;
+    const user_id = req.session.user.user_id;
+
+    try {
+        const tags = await db.any(
+            `SELECT t.* FROM tags t
+             JOIN note_to_tag ntt ON t.tag_id = ntt.tag_id
+             WHERE ntt.note_id = $1 AND t.user_id = $2`,
+            [note_id, user_id]
+        );
+        res.json({ tags });
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+});
+
 // fetch all notes from a tag (for assigning tag visualization)
 //  GET route to fetch the Master List and Current Note Status as JSON
 app.get('/api/tags/:id', auth, async (req, res) => {
@@ -351,7 +370,7 @@ app.get('/api/tags/:id', auth, async (req, res) => {
     const user_id = req.session.user.user_id;
 
     try {
-        // masterList: get every tag name the user owns
+        // masterList get every tag name the user owns
         const allTags = await db.any('SELECT * FROM tags WHERE user_id = $1', [user_id]);
 
         // make DB call, find all active tags for this note, return list of tag ids that are active for this note
