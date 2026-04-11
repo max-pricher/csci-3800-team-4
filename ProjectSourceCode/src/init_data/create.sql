@@ -57,6 +57,38 @@ CREATE TABLE
     FOREIGN KEY (note_id) REFERENCES notes(note_id) ON DELETE CASCADE,
     FOREIGN KEY (task_id) REFERENCES tasks(task_id) ON DELETE CASCADE
 );
+
+-- Tracks share invitations/links sent from one user to another
+CREATE TABLE
+    IF NOT EXISTS note_shares (
+        share_id SERIAL PRIMARY KEY,
+        note_id INT NOT NULL,
+        owner_id INT NOT NULL,        -- user who owns the note
+        shared_with_id INT,           -- NULL if shared via link (not direct invite)
+        permission VARCHAR(10) NOT NULL DEFAULT 'view', -- 'view' or 'edit'
+        share_token VARCHAR(64) UNIQUE,  -- for link-based sharing
+        created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        expires_at TIMESTAMP,            -- NULL means no expiry
+        CONSTRAINT fk_ns_note FOREIGN KEY (note_id) REFERENCES notes(note_id) ON DELETE CASCADE,
+        CONSTRAINT fk_ns_owner FOREIGN KEY (owner_id) REFERENCES users(user_id),
+        CONSTRAINT fk_ns_shared_with FOREIGN KEY (shared_with_id) REFERENCES users(user_id),
+        CONSTRAINT valid_permission CHECK (permission IN ('view', 'edit')),
+        CONSTRAINT unique_direct_share UNIQUE (note_id, shared_with_id) -- prevent duplicate direct shares
+);
+
+-- Tracks when a shared note is accepted and actively in a recipient's workspace
+CREATE TABLE
+    IF NOT EXISTS shared_note_access (
+        access_id SERIAL PRIMARY KEY,
+        share_id INT NOT NULL,
+        user_id INT NOT NULL,          -- the recipient who accepted
+        accepted_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        last_accessed_at TIMESTAMP,
+        CONSTRAINT fk_sna_share FOREIGN KEY (share_id) REFERENCES note_shares(share_id) ON DELETE CASCADE,
+        CONSTRAINT fk_sna_user FOREIGN KEY (user_id) REFERENCES users(user_id),
+        CONSTRAINT unique_user_share_access UNIQUE (share_id, user_id)
+);
+
 -- User: test pwd: test
 INSERT INTO users (username, password) VALUES --default user
 ('test', '$2a$10$U4PAZogU0ClBWhLzm4EirOF6KATKp6rTGqo7l2g0tW96j60NvEZkW');
