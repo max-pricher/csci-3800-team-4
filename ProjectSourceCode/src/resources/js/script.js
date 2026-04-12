@@ -3,8 +3,10 @@
 function applyTheme(event) {
     if (event.matches) {
         document.body.classList.add("dark-theme");
+        // make sure toggle is set to dark mode
     } else {
         document.body.classList.remove("dark-theme");
+        // make sure toggle is set to light mode
     }
 }
 
@@ -12,6 +14,8 @@ window.addEventListener('load', () => {
     const prefersDarkMode = window.matchMedia("(prefers-color-scheme: dark)"); // get system preference
 
     applyTheme(prefersDarkMode);
+    getWeather(); // update widget
+    loadTagBadges(); // load tags for each note
 
     prefersDarkMode.addEventListener("change", applyTheme); // checks if browser preference changes
 });
@@ -22,11 +26,15 @@ let activeNoteId = null;
 const tagsContainer = document.getElementById('tags-container');
 const tagListDiv = document.getElementById('tag-list');
 const addTagButton = document.getElementById('add-tag-button');
-addTagButton.addEventListener('click', async () => {
-    const newTagName = prompt("Enter new tag name:");
-    const newTagColor = "#485696"; // Default color for new tags, in the future we want a hex code input, then a color picker wheel.
-    if (newTagName && activeNoteId) {
-        // Send to SQL 
+
+// only run tag UI code if these elements exist on the page
+if (tagsContainer && tagListDiv && addTagButton) {
+    addTagButton.addEventListener('click', async () => {
+        const newTagName = document.getElementById('tag-name-input').value.trim();
+        const newTagColor = document.getElementById('tag-color-picker').value;
+
+        if (!newTagName || !activeNoteId) return;
+
         const response = await fetch(`/api/tags/${activeNoteId}/add`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -34,16 +42,15 @@ addTagButton.addEventListener('click', async () => {
         });
 
         if (response.ok) {
-            // Close window and reset 
+            document.getElementById('tag-name-input').value = ''; // clear input
             tagsContainer.style.display = 'none';
             activeNoteId = null;
-            // Re-fetch notes to show new badges on the main page
-            window.location.reload();
+            loadTagBadges();
         } else {
             alert("Error creating tag. It might already exist.");
         }
-    }
-});
+    });
+}
 
 async function displayTags(button, noteId) { // function to display the container of users tags with active tags for the cur note at the top
     // check if this note is already active, if so close the menu and reset activeNoteId
@@ -108,5 +115,81 @@ async function displayTags(button, noteId) { // function to display the containe
     } catch (err) {
         tagListDiv.innerHTML = "Error loading tags.";
         console.error(err);
+    }
+}
+
+// Function uses the browsers built in navigator library to get the users geolocation (if permitted). It then makes a call to a free weater API call which will then update the weather widget accordingly.
+async function getWeather() {
+    const weatherWidget = document.getElementById('weather-widget');
+    if (!weatherWidget) return; // error check, does it exist
+
+    if (!navigator.geolocation) { // error check, does browser support geolocation
+        weatherWidget.textContent = 'Geolocation not supported.';
+        return;
+    }
+
+    navigator.geolocation.getCurrentPosition(async (position) => {
+        const { latitude, longitude } = position.coords;
+
+        try {
+            const response = await fetch(
+                `https://api.open-meteo.com/v1/forecast?latitude=${latitude}&longitude=${longitude}&current=temperature_2m,weathercode,windspeed_10m&temperature_unit=fahrenheit`
+            );
+            const data = await response.json();
+            const { temperature_2m, windspeed_10m, weathercode } = data.current;
+
+            weatherWidget.innerHTML = `
+                <span>${getWeatherEmoji(weathercode)}</span>
+                <span>${temperature_2m}°F</span>
+                <span>Wind: ${windspeed_10m} mph</span>
+            `;
+        } catch (err) {
+            weatherWidget.textContent = 'Could not load weather.';
+            console.error(err);
+        }
+    }, () => {
+        weatherWidget.textContent = 'Location access denied.';
+    });
+}
+
+
+function getWeatherEmoji(code) {
+    if (code === 0) return '☀️';
+    else if (code <= 3) return '⛅';
+    else if (code <= 48) return '🌫️';
+    else if (code <= 67) return '🌧️';
+    else if (code <= 77) return '❄️';
+    else if (code <= 82) return '🌦️';
+    else if (code <= 99) return '⛈️';
+    return '🌡️';
+}
+
+// Tag Visualization
+async function loadTagBadges() {
+    const badgeContainers = document.querySelectorAll('.tag-badges');
+    if (!badgeContainers.length) return;  // dont render if no badges
+
+    for (const container of badgeContainers) {
+        const noteId = container.dataset.noteId;
+
+        try {
+            const res = await fetch(`/api/tags/note/${noteId}`);
+            const { tags } = await res.json();
+
+            container.innerHTML = ''; // clear loading state
+
+            tags.forEach(tag => {
+                const badge = document.createElement('span');
+                badge.textContent = tag.name;
+                badge.style.backgroundColor = tag.color;
+                badge.style.color = '#fff';
+                badge.style.fontSize = '0.75rem';
+                badge.style.padding = '2px 8px';
+                badge.style.borderRadius = '999px';
+                container.appendChild(badge);
+            });
+        } catch (err) {
+            console.error(`Failed to load tags for note ${noteId}:`, err);
+        }
     }
 }

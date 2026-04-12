@@ -103,8 +103,9 @@ small.text-muted {
 
 #tags-container {
     position: absolute;
-    top: 100%;
-    right: 1rem;
+    top: 0;
+    left: 100%;
+    margin-left: 8px;
     z-index: 1050;
 
     width: 200px;
@@ -143,4 +144,13 @@ footer span {
 input[type="search"] {
     color: var(--text-color) !important;
     -webkit-text-fill-color: var(--text-color) !important;
+}
+
+#tag-color-picker {
+    width: 36px;
+    height: 28px;
+    border: none;
+    padding: 0;
+    cursor: pointer;
+    background: none;
 }
