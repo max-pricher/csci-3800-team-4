@@ -78,9 +78,20 @@ app.use((req, res, next) => {
 // *****************************************************
 // <!-- Section 4 : API Routes -->
 // *****************************************************
+// Helper to keep code dry
+function formatNotes(notes) {
+    return notes.map(note => ({
+        ...note,
+        time_made: new Date(note.time_made).toLocaleString('en-US', {
+            timeZone: 'America/Denver',
+            dateStyle: 'medium',
+            timeStyle: 'short'
+        })
+    }));
+}
 
 app.get('/', (req, res) => {
-    res.render('pages/login');; //this will call the /login route in the API
+    res.render('pages/login'); //this will call the /login route in the API
 });
 
 app.get('/login', (req, res) => {
@@ -149,7 +160,7 @@ const auth = (req, res, next) => {
 };
 
 // home routes
-app.get('/home', auth, async (req, res) => {
+app.get('/home', auth, async (req, res, next) => {
 
     const currentTime = new Date().getHours();
     let greeting;
@@ -168,14 +179,7 @@ app.get('/home', auth, async (req, res) => {
             'SELECT * FROM notes WHERE user_id = $1 ORDER BY time_made DESC LIMIT 5',
             [user_id]
         );
-        const formattedNotes = notes.map(note => ({
-            ...note,
-            time_made: new Date(note.time_made).toLocaleString('en-US', {
-                timeZone: 'America/Denver',
-                dateStyle: 'medium',
-                timeStyle: 'short'
-            })
-        }));
+        const formattedNotes = formatNotes(notes);
         res.render('pages/home', { greeting, notes: formattedNotes });
     } catch (error) {
         next(error);
@@ -205,38 +209,106 @@ app.post('/create', auth, async (req, res, next) => {
     const query = `INSERT INTO notes (user_id, title, body) VALUES ($1, $2, $3) RETURNING *;`;
 
     try {
-        const note = await db.one(query, [user_id, title, body]);
-
-        if (note) {
-            res.redirect('/home');
-        }
+        await db.one(query, [user_id, title, body]);
+        res.redirect('/home');
     } catch (error) {
         next(error);
     }
 });
 
 // Note Routes to view our notes
+// currently modifying this function to parse the string first and interpret the full query.
 app.get('/notes', auth, async (req, res, next) => {
     const user_id = req.session.user.user_id;
     // Support simple keyword search across note titles and bodies.
-    const search = (req.query.search || '').trim();
-    const query = `
-        SELECT * FROM notes
-        WHERE user_id = $1 AND ($2 = '' OR title ILIKE '%' || $2 || '%' OR body ILIKE '%' || $2 || '%')
-        ORDER BY time_made DESC;
-    `;
+    const searchString = (req.query.search || '').trim(); // get user input
 
-    try {
-        const notes = await db.any(query, [user_id, search]);
-        const formattedNotes = notes.map(note => ({ // easy way to change the time format, can modify other fields.
-            ...note, // keep the note the same
-            time_made: new Date(note.time_made).toLocaleString('en-US', { // change the time
-                timeZone: 'America/Denver',
-                dateStyle: 'medium',
-                timeStyle: 'short'
-            })
-        }));
-        res.render('pages/notes', { notes: formattedNotes, search });
+    if (!searchString) {
+        try {
+            const notes = await db.any(`SELECT * FROM notes WHERE user_id = $1 ORDER BY time_made DESC`, [user_id]);
+            return res.render('pages/notes', { notes: formatNotes(notes), search: '' });
+        } catch (error) {
+            return next(error);
+        }
+    }
+
+    // parsing logic.
+    // users can use operators like & for AND, | for OR, and ! for NOT. 
+    // to search notes for specific tags they assigned.
+
+    // create placeholder arrays
+    // REFINED Parsing Logic for Multi-word Tags
+    const tokens = searchString.split(/(?=[&|!])/); // Split only when we hit an operator
+    const keywords = [];
+    const includeTags = [];
+    const excludeTags = [];
+    const orTags = [];
+
+    tokens.forEach(token => {
+        const cleanToken = token.trim();
+        if (cleanToken.startsWith('!')) {
+            excludeTags.push(cleanToken.substring(1).trim());
+        } else if (cleanToken.startsWith('&')) {
+            includeTags.push(cleanToken.substring(1).trim());
+        } else if (cleanToken.startsWith('|')) {
+            orTags.push(cleanToken.substring(1).trim());
+        } else {
+            // If it doesn't start with an operator, it's a keyword
+            keywords.push(cleanToken);
+        }
+    });
+
+    // --- Query BUILDING ---
+    // get all distinct notes (distinct for notes with multiple tags)
+    // prioritizing notes, join note to tag id.
+    // connect tags to tag id.
+    // filter by user id first, then apply keyword and tag filters.
+    let query = `SELECT DISTINCT n.* FROM notes n  
+                 LEFT JOIN note_to_tag ntt ON n.note_id = ntt.note_id
+                 LEFT JOIN tags t ON ntt.tag_id = t.tag_id
+                 WHERE n.user_id = $1`;
+    const params = [user_id];
+
+    // regular Keyword Filtering (Title/Body)
+    if (keywords.length > 0) { // if keywords exist
+        const keywordTerm = `%${keywords.join(' ')}%`; // recreate search term with all keywords
+        params.push(keywordTerm);
+        query += ` AND (n.title ILIKE $${params.length} OR n.body ILIKE $${params.length})`; // add keyword search to query.
+    }
+
+    // "NOT" Logic (!tag) 
+    // similar to original flow but instead excluding tags.
+    if (excludeTags.length > 0) {
+        params.push(excludeTags);
+        query += ` AND n.note_id NOT IN (
+        SELECT note_id FROM note_to_tag ntt2 
+        JOIN tags t2 ON ntt2.tag_id = t2.tag_id 
+        WHERE t2.name = ANY($${params.length})
+    )`;
+    }
+
+    if (includeTags.length > 0) {
+        // Each included tag must match (true AND logic)
+        includeTags.forEach(tag => {
+            params.push(tag);
+            query += ` AND n.note_id IN (
+            SELECT ntt2.note_id FROM note_to_tag ntt2
+            JOIN tags t2 ON ntt2.tag_id = t2.tag_id
+            WHERE t2.name = $${params.length}
+        )`;
+        });
+    }
+
+    if (orTags.length > 0) {
+        params.push(orTags);
+        query += ` AND t.name = ANY($${params.length})`;
+    }
+
+    query += ` ORDER BY n.time_made DESC`; // finalize query with order
+
+    try { // attempt to fetch notes based on search criteria, if the search string is malformed it may cause an error, so we catch it and send to global handler.
+        const notes = await db.any(query, params);
+        res.render('pages/notes', { notes: formatNotes(notes), search: searchString });
     } catch (error) {
         next(error);
     }
@@ -289,7 +361,7 @@ app.post('/delete/:id', auth, async (req, res, next) => {
     const query = `DELETE FROM notes WHERE note_id = $1 AND user_id = $2 RETURNING *;`; // returning allows us to delete the note but save it to check if it was succesfully deleted.
 
     try {
-        const deletedNote = await db.oneOrNone(query, [note_id, user_id]);
+        await db.oneOrNone(query, [note_id, user_id]);
         res.redirect('/notes');
     } catch (error) {
         next(error); // This sends the error to the Global Handler automatically
@@ -301,20 +373,6 @@ app.get('/about', (req, res) => {
     res.render('pages/about');
 });
 // bonuses
-// error. catch handler to reduce redundancy.
-app.use((err, req, res, next) => {
-    console.error('GLOBAL ERROR:', err.stack);
-
-    // If they are logged in, show it on the notes page
-    const pageToRender = req.session.user ? 'pages/notes' : 'pages/login';
-
-    res.status(500).render(pageToRender, {
-        message: 'Something went wrong. Please try again.',
-        error: true,
-        notes: [] // pass blank note
-    });
-});
-
 //Export routes
 app.get('/export/:id', auth, async (req, res, next) => {
     const note_id = req.params.id;
@@ -332,7 +390,7 @@ app.get('/export/:id', auth, async (req, res, next) => {
                 time_made: note.time_made
                 // add properties once added to db
             }
-            res.attachment(`${safeTitle}_ ${timestamp}.json`); // set the file name for download
+            res.attachment(`${safeTitle}_${timestamp}.json`); // set the file name for download
             res.json(data); // send the note data as JSON for download
 
         } else {
@@ -363,7 +421,7 @@ app.get('/api/tags/note/:id', auth, async (req, res) => {
     }
 });
 
-// fetch all notes from a tag (for assigning tag visualization)
+// fetch all tags from a note (for assigning tag visualization)
 //  GET route to fetch the Master List and Current Note Status as JSON
 app.get('/api/tags/:id', auth, async (req, res) => {
     const note_id = req.params.id;
@@ -441,6 +499,23 @@ app.get('/welcome', (req, res) => {
 
 app.get('/test', (req, res) => {
     res.redirect('/login');
+});
+
+
+
+
+// error. catch handler to reduce redundancy. Leave at bottom
+app.use((err, req, res, next) => {
+    console.error('GLOBAL ERROR:', err.stack);
+
+    // If they are logged in, show it on the notes page
+    const pageToRender = req.session.user ? 'pages/notes' : 'pages/login';
+
+    res.status(500).render(pageToRender, {
+        message: 'Something went wrong. Please try again.',
+        error: true,
+        notes: [] // pass blank note
+    });
 });
 
 // <!-- Final : Start Server-->
