@@ -5,7 +5,7 @@
 <!--summary of overdue and upcoming Tasks-->
 <div class="task-summary mb-4 d-flex gap-3">
     <span class="badge bg-primary fs-6">
-        Overdue tasks:{{counts.overdue_tasks}}
+        Overdue tasks: {{counts.overdue_tasks}}
     </span>
     <span class="badge bg-primary fs-6">
         Upcoming tasks: {{counts.current_tasks}}
@@ -17,24 +17,24 @@
     <button type="submit" class="btn btn-outline-secondary">
         Search
     </button>
-   <!--add clear function here? --> 
+    <!--add clear function here? -->
 </form>
 <!--overdue tasks -->
 {{#if overdue.length}}<!--only shows if overdue has values-->
 <section class="mb-5">
     <h3 class="text-danger"> Overdue:</h3>
     <div class="list-group">
-{{#each overdue}}<!--code will repeat for each element in overdue -->
-    <div class="list-group-item list-group-item-danger d-flex justify-content-between align-items-start">
-        <div>
-            <p class="mb-1 fw-bold">
-                {{this.body}}
-            </p>
-            <small>Due: {{this.due_at_formatted}}</small>
+        {{#each overdue}}<!--code will repeat for each element in overdue -->
+        <div class="list-group-item list-group-item-danger d-flex justify-content-between align-items-start">
+            <div>
+                <p class="mb-1 fw-bold">
+                    {{this.body}}
+                </p>
+                <small>Due: {{this.due_at_formatted}}</small>
+            </div>
+            <!-- add edit/delete task option here? -->
         </div>
-    <!-- add edit/delete task option here? -->
-    </div>   
-{{/each}}    
+        {{/each}}
     </div>
 </section>
 {{/if}}
@@ -43,16 +43,16 @@
 <section class="mb-5">
     <h3 class="text-sale"> tasks this week:</h3>
     <div class="list-group">
-    {{#each thisWeek}}
-    <div class="list-group-item list-group-item-sale d-flex justify-content-between align-items-start">
-        <div>
-            <p class="mb-1 fw-bold">
-                {{this.body}}
-            </p>
-            <small>Due: {{this.due_at_formatted}}</small>
+        {{#each thisWeek}}
+        <div class="list-group-item list-group-item-sale d-flex justify-content-between align-items-start">
+            <div>
+                <p class="mb-1 fw-bold">
+                    {{this.body}}
+                </p>
+                <small>Due: {{this.due_at_formatted}}</small>
+            </div>
         </div>
-    </div>
-    {{/each}}   
+        {{/each}}
     </div>
 </section>
 {{/if}}
@@ -61,16 +61,16 @@
 <section class="mb-5">
     <h3 class="text-sale"> tasks after this week:</h3>
     <div class="list-group">
-    {{#each future}}
-    <div class="list-group-item list-group-item-sale d-flex justify-content-between align-items-start">
-        <div>
-            <p class="mb-1 fw-bold">
-                {{this.body}}
-            </p>
-            <small>Due: {{this.due_at_formatted}}</small>
+        {{#each future}}
+        <div class="list-group-item list-group-item-sale d-flex justify-content-between align-items-start">
+            <div>
+                <p class="mb-1 fw-bold">
+                    {{this.body}}
+                </p>
+                <small>Due: {{this.due_at_formatted}}</small>
+            </div>
         </div>
-    </div>
-    {{/each}}   
+        {{/each}}
     </div>
 </section>
 {{/if}}

@@ -493,36 +493,36 @@ app.post('/api/tags/:id/add', auth, async (req, res) => {
     }
 });
 //task stuff ask jacob
-function formatTask(task){
-    return{
-   ...task, //puts task properties in new object 
-   due_at_formatted: task.due_at 
-    ? new Date(task.due_at).toLocaleString():'no due date'
+function formatTask(task) {
+    return {
+        ...task, //puts task properties in new object 
+        due_at_formatted: task.due_at
+            ? new Date(task.due_at).toLocaleString() : 'no due date'
     };
 }
-app.get('/createTask', auth, (req,res)=>{ //req is user request res is response to send back
+app.get('/createTask', auth, (req, res) => { //req is user request res is response to send back
     res.render('pages/createTask');
 });
-app.post('/createTask', auth, async (req,res,next)=>{
-    const { body, due_at, will_remind }=req.body;
-    const user_id=req.session.user.user_id
-    const remind=will_remind==='true';//converts to boolean
-    const query='INSERT INTO tasks (user_id, body, due_at, will_remind) VALUES ($1, $2, $3, $4) RETURNING *;';
+app.post('/createTask', auth, async (req, res, next) => {
+    const { body, due_at, will_remind } = req.body;
+    const user_id = req.session.user.user_id
+    const remind = will_remind === 'true';//converts to boolean
+    const query = 'INSERT INTO tasks (user_id, body, due_at, will_remind) VALUES ($1, $2, $3, $4) RETURNING *;';
     //inserts positional parameters into next row of tasks that will be replaced with the next passed in values
-    try{
+    try {
         await db.one(query, [user_id, body, due_at, remind]);//executes query
         res.redirect('/tasks');//bring back to tasks page after 
     }
-    catch(error){
+    catch (error) {
         next(error);// when we pass an arg to next, it searches for an error handler.
     }
 });
-app.get('/tasks',auth, async (req, res, next) => {
-    const user_id=req.session.user.user_id;
-    const search=(req.query.search || '').trim();//reads search parameter in url, blank if undefined, trim removes extra whitespace
+app.get('/tasks', auth, async (req, res, next) => {
+    const user_id = req.session.user.user_id;
+    const search = (req.query.search || '').trim();//reads search parameter in url, blank if undefined, trim removes extra whitespace
     //overdue tasks
-    const overdueQuery= 
-    `
+    const overdueQuery =
+        `
     SELECT * FROM tasks
     WHERE user_id=$1
      AND due_at<NOW()
@@ -530,8 +530,8 @@ app.get('/tasks',auth, async (req, res, next) => {
     ORDER BY due_at ASC;
     `;
     //tasks due within week
-    const weekQuery=
-    `
+    const weekQuery =
+        `
     SELECT * FROM tasks
     WHERE user_id=$1
      AND due_at BETWEEN NOW() AND (NOW()+ '7 days'::INTERVAL)
@@ -539,8 +539,8 @@ app.get('/tasks',auth, async (req, res, next) => {
     ORDER BY due_at ASC;   
     `;
     //tasks due past one week
-    const futureQuery=
-    `
+    const futureQuery =
+        `
     SELECT * FROM tasks
     WHERE user_id=$1
      AND due_at > (NOW()+ '7 days'::INTERVAL)
@@ -548,28 +548,28 @@ app.get('/tasks',auth, async (req, res, next) => {
     ORDER BY due_at ASC;
     `;
     //count of current and overdue taks
-    const countQuery=
-    `
+    const countQuery =
+        `
     SELECT COUNT(*) FILTER (WHERE due_at>NOW()) AS current_tasks,  COUNT(*) FILTER (WHERE due_at<NOW() ) AS overdue_tasks
     FROM tasks
     WHERE user_id=$1;
     `;
-    try{
-       const [overdue, thisWeek,future, counts] = await Promise.all([
-        db.any(overdueQuery,[user_id,search]),//db.any() for expecting multiple values, returns as an array
-        db.any(weekQuery,[user_id,search]),
-        db.any(futureQuery,[user_id,search]),
-        db.one(countQuery,[user_id]),
-       ]);
-       res.render('pages/tasks',{
-        overdue:overdue.map(formatTask),
-        thisWeek:thisWeek.map(formatTask),
-        future:future.map(formatTask),
-        counts,
-        search
-       });
+    try {
+        const [overdue, thisWeek, future, counts] = await Promise.all([
+            db.any(overdueQuery, [user_id, search]),//db.any() for expecting multiple values, returns as an array
+            db.any(weekQuery, [user_id, search]),
+            db.any(futureQuery, [user_id, search]),
+            db.one(countQuery, [user_id]),
+        ]);
+        res.render('pages/tasks', {
+            overdue: overdue.map(formatTask),
+            thisWeek: thisWeek.map(formatTask),
+            future: future.map(formatTask),
+            counts,
+            search
+        });
     }
-    catch (error){
+    catch (error) {
         next(error);
     }
 });
