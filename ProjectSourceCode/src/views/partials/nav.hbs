@@ -1,39 +1,43 @@
 <div class="container">
-    <a class="navbar-brand" href="/home">Loconotion</a>
+    <div class="container-fluid d-flex flex-row align-items-center">
+        <a class="navbar-brand m-0 mb-2" href="/home">
+            <img src="/resources/img/loconotion.gif" alt="Loconotion Logo" style="height: 40px; width: auto;">
+            <span class="d-block text-center" style="font-size: 0.8rem;">Loconotion</span>
+        </a>
 
-    <button class="navbar-toggler ms-auto" type="button" data-bs-toggle="collapse" data-bs-target="#navbar-collapse"
-        aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
-        <span class="navbar-toggler-icon"></span>
-    </button>
+        <button class="navbar-toggler ms-auto" type="button" data-bs-toggle="collapse" data-bs-target="#navbar-collapse"
+            aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
 
-    <div class="collapse navbar-collapse" id="navbar-collapse">
-        <ul class="navbar-nav me-auto mb-2 mb-lg-0 gap-3">
+        <div class="collapse navbar-collapse" id="navbar-collapse">
+            <ul class="navbar-nav me-auto mb-2 mb-lg-0 gap-3 text-center">
 
-            <li class="nav-item">
-                <a class="nav-link" href="/home">Home</a>
-            </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="/home">Home</a>
+                </li>
 
-            <li class="nav-item">
-                <a class="nav-link" href="/about">About</a>
-            </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="/about">About</a>
+                </li>
 
-            {{#if user}}
-            <li class="nav-item">
-                <a class="nav-link" href="/create">Create Note</a>
-            </li>
+                {{#if user}}
+                <li class="nav-item">
+                    <a class="nav-link" href="/create">Create Note</a>
+                </li>
 
-            <li class="nav-item">
-                <a class="nav-link" href="/notes">View Notes</a>
-            </li>
-            <li class="nav-item">
-                <a class="nav-link" href="/createTask">Create Task</a>
-            </li>
-            <li class="nav-item">
-                <a class="nav-link" href="/tasks">View Tasks</a>
-            </li>
-            <li class="nav-item">
-                <a class="nav-link" href="/logout">Logout</a>
-            </li>
-            {{/if}}
-        </ul>
-    </div>
+                <li class="nav-item">
+                    <a class="nav-link" href="/notes">View Notes</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="/createTask">Create Task</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="/tasks">View Tasks</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="/logout">Logout</a>
+                </li>
+                {{/if}}
+            </ul>
+        </div>
