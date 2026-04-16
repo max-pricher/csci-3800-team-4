@@ -186,6 +186,7 @@ app.get('/home', auth, async (req, res, next) => {
     }
 });
 
+
 app.get('/logout', auth, (req, res) => {
     // 1. Destroy the session
     req.session.destroy(); // deletes local data
