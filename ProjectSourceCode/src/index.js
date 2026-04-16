@@ -3,10 +3,10 @@
 // *****************************************************
 const express = require('express'); // To build an application server or API
 const app = express();
-app.use(express.static(__dirname + '/'));
+const path = require('path');
+app.use('/resources', express.static(path.join(__dirname, 'resources')));
 const handlebars = require('express-handlebars'); //to enable express to work with handlebars
 const Handlebars = require('handlebars'); // to include the templating engine responsible for compiling templates
-const path = require('path');
 const pgp = require('pg-promise')(); // To connect to the Postgres DB from the node server
 const bodyParser = require('body-parser');
 const session = require('express-session'); // To set the session object. To store or access session data, use the `req.session`, which is (generally) serialized as JSON by the store.
@@ -139,8 +139,9 @@ app.post('/login', async (req, res, next) => {
         const passwordMatch = await bcrypt.compare(req.body.password, user.password); // compare hash password
         if (passwordMatch) { // successful login
             req.session.user = user;
-            req.session.save(() => {
-                res.redirect('/home'); // redirect to home page after successful login
+            req.session.save((err) => {
+                if (err) return next(err);
+                res.redirect('/home');
             });
         } else {
             res.render('pages/login', { message: 'Invalid password', error: true });
@@ -185,6 +186,7 @@ app.get('/home', auth, async (req, res, next) => {
         next(error);
     }
 });
+
 
 app.get('/logout', auth, (req, res) => {
     // 1. Destroy the session

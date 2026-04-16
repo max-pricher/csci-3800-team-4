@@ -154,3 +154,28 @@ input[type="search"] {
     cursor: pointer;
     background: none;
 }
+
+button:hover {
+    transform: scale(1.1) !important;
+    transition: 50ms !important;
+}
+
+.btn:hover {
+    transform: scale(1.1) !important;
+    transition: 50ms !important;
+}
+
+.navbar-collapse {
+    flex-grow: 0;
+}
+
+.navbar-nav {
+    display: flex;
+    justify-content: center;
+    width: 100%;
+}
+
+.navbar-brand:hover {
+    opacity: 0.8;
+    transition: 0.3s;
+}
