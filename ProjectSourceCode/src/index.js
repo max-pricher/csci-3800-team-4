@@ -24,13 +24,20 @@ const hbs = handlebars.create({
 });
 
 // database configuration
-const dbConfig = {
-    host: 'db', // the database server
-    port: 5432, // the database port
-    database: process.env.POSTGRES_DB, // the database name
-    user: process.env.POSTGRES_USER, // the user account to connect with
-    password: process.env.POSTGRES_PASSWORD, // the password of the user account
-};
+const isProduction = process.env.NODE_ENV === 'production';
+
+const dbConfig = isProduction
+    ? {
+        connectionString: process.env.DATABASE_URL, // Render's Internal Database URL
+        ssl: { rejectUnauthorized: false },         // Required for Render
+    }
+    : {
+        host: 'db',
+        port: 5432,
+        database: process.env.POSTGRES_DB,
+        user: process.env.POSTGRES_USER,
+        password: process.env.POSTGRES_PASSWORD,
+    };
 
 const db = pgp(dbConfig);
 
