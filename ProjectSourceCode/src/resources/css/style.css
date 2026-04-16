@@ -154,3 +154,13 @@ input[type="search"] {
     cursor: pointer;
     background: none;
 }
+
+button:hover {
+    transform: scale(1.1) !important;
+    transition: 50ms !important;
+}
+
+.btn:hover {
+    transform: scale(1.1) !important;
+    transition: 50ms !important;
+}
