@@ -11,6 +11,9 @@
         Upcoming tasks: {{counts.current_tasks}}
     </span>
 </div>
+
+<div data-overdue="{{counts.overdue_tasks}}" data-week="{{counts.current_tasks}}"></div>
+
 <!--search bar -->
 <form method="GET" action="/tasks" class="mb-4 d-flex gap-2">
     <input type="text" name="search" class="form-control" placeholder="search tasks..." value="{{search}}">

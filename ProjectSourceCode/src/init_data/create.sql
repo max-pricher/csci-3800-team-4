@@ -116,3 +116,10 @@ INSERT INTO note_to_tag (note_id, tag_id) VALUES
 -- Insert into the second note, the third tag
 INSERT INTO note_to_tag (note_id, tag_id) VALUES
 (2,3);
+
+-- test tasks
+INSERT INTO tasks (user_id, body, due_at, will_remind) VALUES
+(1, 'OVERDUE TASK!', '2024-12-31 23:59:59', true),
+(1, 'Presentation', '2026-4-22 16:00:00', true),
+(1, 'Calc Final', '2026-4-24 9:45:00', true),
+(1, 'Overdue Soon', now() + interval '1 minutes', true);

@@ -1,25 +1,34 @@
 services:
+  # defince all containters/services, we have 2, web and db
   db:
-    image: postgres:14
-    env_file: .env
+    # database container
+    image: postgres:14 # version of postrgres
+    env_file: .env #enviornment variables
     expose:
+      # port
       - '5432'
+    environment:
+      - POSTGRES_INITDB_ARGS=--timezone=America/Denver
     volumes:
+      # storage mounts
       - group-project:/var/lib/postgresql/data
       - ./src/init_data:/docker-entrypoint-initdb.d
   web:
-    image: node:lts
-    user: 'node'
-    working_dir: /repository
+    # web server
+    image: node:lts # use node
+    user: 'node' # run as node user for security
+    working_dir: /repository # default dir
     env_file: .env
     environment:
-      - NODE_ENV=development
+      - NODE_ENV=development # dev mode
     depends_on:
-      - db
+      # dont start until 
+      - db # db is ready
     ports:
+      # local host port mapping
       - '3000:3000'
     volumes:
       - ./:/repository
-    command: 'npm run testandrun'
+    command: 'npm run testandrun' 
 volumes:
   group-project:
