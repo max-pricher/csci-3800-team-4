@@ -223,8 +223,8 @@ function checkTaskNotifications() { // atm, it only works when page is open
     const weekCount = parseInt(overdueTask.dataset.week) || 0;
 
     if (overdueCount > 0) {
-        showBanner(`You have ${overdueCount} overdue task(s)!`, 'error');
+        showBanner(`You have ${overdueCount} overdue task(s)!`, true);
     } else if (weekCount > 0) {
-        showBanner(`${weekCount} task(s) due this week`, 'warning');
+        showBanner(`${weekCount} task(s) due this week`, false);
     }
 }
