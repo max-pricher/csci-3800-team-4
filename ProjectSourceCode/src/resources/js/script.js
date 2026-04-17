@@ -16,6 +16,7 @@ window.addEventListener('load', () => {
     applyTheme(prefersDarkMode);
     getWeather(); // update widget
     loadTagBadges(); // load tags for each note
+    checkTaskNotifications();
 
     prefersDarkMode.addEventListener("change", applyTheme); // checks if browser preference changes
 });
@@ -191,5 +192,39 @@ async function loadTagBadges() {
         } catch (err) {
             console.error(`Failed to load tags for note ${noteId}:`, err);
         }
+    }
+}
+
+// notification system
+function showBanner(message, isError) {
+
+    const banner = document.createElement('div');
+    banner.className = `alert alert-${isError ? 'danger' : 'success'}`;
+    banner.setAttribute('role', 'alert');
+    banner.textContent = message;
+    document.body.prepend(banner);
+    setTimeout(() => banner.remove(), 5000);
+
+    if ('Notification' in window) { // if notifcation api exisits in browser
+        Notification.requestPermission().then(permission => { // try to get user permission
+            if (permission === 'granted') { // if user gave permission
+                new Notification(message); // pass banner to notification (typically a task)
+            }
+        });
+    }
+}
+
+
+function checkTaskNotifications() { // atm, it only works when page is open
+    const overdueTask = document.querySelector('[data-overdue]');
+    if (!overdueTask) return; // not on the tasks page, bail out
+
+    const overdueCount = parseInt(overdueTask.dataset.overdue) || 0;
+    const weekCount = parseInt(overdueTask.dataset.week) || 0;
+
+    if (overdueCount > 0) {
+        showBanner(`You have ${overdueCount} overdue task(s)!`, 'error');
+    } else if (weekCount > 0) {
+        showBanner(`${weekCount} task(s) due this week`, 'warning');
     }
 }
