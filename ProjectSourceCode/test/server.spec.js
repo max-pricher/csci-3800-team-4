@@ -26,6 +26,26 @@ describe('Server!', () => {
 
 // *********************** TODO: WRITE 2 UNIT TESTCASES **************************
 // Positive Test Case
+describe('Testing Register', () => {
+    it('positive : /register. Should successfully register a new user', done => {
+        const uniqueUser = {
+            username: 'newuser_' + Date.now(),
+            password: 'securepassword123'
+        };
+
+        chai
+            .request(server)
+            .post('/register')
+            .send(uniqueUser)
+            .redirects(0) // Stop before following the redirect
+            .end((err, res) => {
+                expect(res).to.have.status(302);         // redirect issued on success
+                expect(res.headers.location).to.equal('/login'); // confirms it's going to /login
+                done();
+            });
+    });
+});
+
 // Negative Test Case
 it('negative : /register. Checking duplicate user', done => {
     chai
