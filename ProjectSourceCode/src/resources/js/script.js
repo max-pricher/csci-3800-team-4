@@ -10,6 +10,7 @@ function applyTheme(event) {
     }
 }
 
+
 window.addEventListener('load', () => {
     const prefersDarkMode = window.matchMedia("(prefers-color-scheme: dark)"); // get system preference
 
