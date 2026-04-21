@@ -574,7 +574,56 @@ app.get('/tasks', auth, async (req, res, next) => {
         next(error);
     }
 });
-
+//get edit task
+app.get('/editTask/:id', auth, async(req, res, next) => {
+    const task_id=req.params.id;
+    const user_id=req.session.user.user_id;
+    try{
+        const task=await db.oneOrNone(
+            'SELECT * FROM tasks WHERE task_id=$1 AND user_id=$2',[task_id,user_id]
+        );
+        if (!task) return res.redirect('/tasks');
+        task.due_at_input=task.due_at
+        ? new Date(task.due_at).toISOString().slice(0,16)
+        :'';
+        res.render('pages/editTask',{task});
+    }
+    catch (error){
+        next(error);
+    }
+});
+app.post('/editTask/:id', auth, async(req, res, next) => {
+    const task_id=req.params.id;
+    const user_id=req.session.user.user_id;
+    const {body, due_at, will_remind}=req.body;
+    const remind=will_remind==='true'||will_remind==='on';//checkbox
+    try{
+        const updated=await db.oneOrNone(
+            'UPDATE tasks SET body=$1, due_at=$2,will_remind=$3 WHERE task_id=$4 AND user_id=$5 RETURNING *',[body,due_at,remind,task_id,user_id]
+        );
+        if (!updated) return res.redirect('/tasks');
+        res.redirect('/tasks');
+    }
+    catch (error){
+        next(error);
+    }
+});
+//delete task
+app.post('/deleteTask/:id', auth, async(req, res, next) => {
+    const task_id=req.params.id;
+    const user_id=req.session.user.user_id;
+    const {body, due_at, will_remind}=req.body;
+    const remind=will_remind==='true'||will_remind==='on';//checkbox
+    try{
+        await db.oneOrNone(
+            'DELETE FROM tasks WHERE task_id=$1 AND user_id=$2 RETURNING *',[task_id,user_id]
+        );
+        res.redirect('/tasks');
+    }
+    catch (error){
+        next(error);
+    }
+});
 // testingggg(lab10)
 app.get('/welcome', (req, res) => {
     res.json({ status: 'success', message: 'Welcome!' });
