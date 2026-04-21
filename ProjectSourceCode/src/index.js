@@ -84,7 +84,6 @@ function formatNotes(notes) {
     return notes.map(note => ({
         ...note,
         time_made: new Date(note.time_made).toLocaleString('en-US', {
-            timeZone: 'America/Denver',
             dateStyle: 'medium',
             timeStyle: 'short'
         })
@@ -163,7 +162,6 @@ const auth = (req, res, next) => {
 
 // home routes
 app.get('/home', auth, async (req, res, next) => {
-
     const currentTime = new Date().getHours();
     let greeting;
 
