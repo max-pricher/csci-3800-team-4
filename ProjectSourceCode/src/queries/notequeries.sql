@@ -66,6 +66,6 @@ WHERE user_id=$1
 ORDER BY due_at ASC;
 
 --get num current tasks and overdue tasks
-SELECT COUNT(*) FILTER (WHERE due_at>NOW()) AS current_tasks,  COUNT(*) FILTER (WHERE due_at<NOW() ) AS overdue_tasks
+SELECT COUNT(*) FILTER (WHERE due_at BETWEEN NOW() AND (NOW()+'7 days'::INTERVAL)) AS current_tasks,  COUNT(*) FILTER (WHERE due_at<NOW() ) AS overdue_tasks
 FROM tasks
 WHERE user_id=$1;
