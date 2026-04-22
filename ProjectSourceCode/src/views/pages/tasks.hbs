@@ -39,7 +39,7 @@
             <div class="d-flex gap-2 ms-3">
                 <a href="/editTask/{{this.task_id}}" method="POST" class="d-inline">Edit</a>
                 <form action="/deleteTask/{{this.task_id}}" method="POST" class="d-inline">
-                 <button type="submit" class="btn btn-sm btn-danger"></button>
+                 <button type="submit" class="btn btn-sm btn-danger" onclick="return confirm('Delete this task?')">Delete</button>
                 </form>
             </div>
         </div>
@@ -63,7 +63,7 @@
         <div class="d-flex gap-2 ms-3">
                 <a href="/editTask/{{this.task_id}}" method="POST" class="d-inline">Edit</a>
                 <form action="/deleteTask/{{this.task_id}}" method="POST" class="d-inline">
-                 <button type="submit" class="btn btn-sm btn-danger"></button>
+                 <button type="submit" class="btn btn-sm btn-danger" onclick="return confirm('Delete this task?')">Delete</button>
                 </form>
             </div>
         </div>
