@@ -12,7 +12,8 @@ Prerequisites to run the application - Any software that needs to be installed t
 Instructions on how to run the application locally.
 -Download the repository
 -Navigate to /ProjectSourceCode
--Create .env file?
+-Create a `.env` file in `ProjectSourceCode` using `.env.example`
+-Set `OPENAI_API_KEY` in that `.env` file if you want the homepage and notes-page AI summaries enabled
 -Docker compose up
 -Visit localhost:3000
 

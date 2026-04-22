@@ -90,6 +90,115 @@ function formatNotes(notes) {
     }));
 }
 
+function trimNoteText(text, maxLength) {
+    return (text || '')
+        .replace(/\s+/g, ' ')
+        .trim()
+        .slice(0, maxLength);
+}
+
+function extractResponseText(responseData) {
+    if (typeof responseData?.output_text === 'string' && responseData.output_text.trim()) {
+        return responseData.output_text.trim();
+    }
+
+    if (!Array.isArray(responseData?.output)) {
+        return '';
+    }
+
+    return responseData.output
+        .flatMap(item => Array.isArray(item.content) ? item.content : [])
+        .filter(content => content.type === 'output_text' && typeof content.text === 'string')
+        .map(content => content.text.trim())
+        .join(' ')
+        .trim();
+}
+
+function buildFallbackNoteSummary(notes, searchString = '') {
+    if (!notes.length) {
+        return searchString
+            ? `No notes match "${searchString}" right now. Try a different search to see a summary here.`
+            : 'You do not have any notes yet. Create your first note to see an AI summary here.';
+    }
+
+    const latestNote = notes[0];
+    const noteCountLabel = notes.length === 1 ? 'note' : 'notes';
+    const latestTitle = trimNoteText(latestNote.title, 60) || 'Untitled note';
+    const latestPreview = trimNoteText(latestNote.body, 120);
+    const scopeText = searchString
+        ? `You have ${notes.length} ${noteCountLabel} matching "${searchString}".`
+        : `You have ${notes.length} ${noteCountLabel} in view.`;
+
+    if (!latestPreview) {
+        return `${scopeText} Your latest note is "${latestTitle}".`;
+    }
+
+    return `${scopeText} Your latest note is "${latestTitle}", and it starts with: ${latestPreview}`;
+}
+
+async function generateNoteSummary(notes, username, searchString = '') {
+    const fallbackSummary = buildFallbackNoteSummary(notes, searchString);
+
+    if (!notes.length || !process.env.OPENAI_API_KEY) {
+        return fallbackSummary;
+    }
+
+    const noteSnapshot = notes
+        .slice(0, 10)
+        .map((note, index) => {
+            const title = trimNoteText(note.title, 80) || 'Untitled note';
+            const body = trimNoteText(note.body, 220) || 'No body text.';
+            const createdAt = new Date(note.time_made).toLocaleString('en-US', {
+                dateStyle: 'medium',
+                timeStyle: 'short'
+            });
+
+            return `${index + 1}. ${title} (${createdAt}): ${body}`;
+        })
+        .join('\n');
+
+    const searchContext = searchString
+        ? `The user is viewing notes filtered by this search: "${searchString}".`
+        : 'The user is viewing their general notes overview.';
+
+    try {
+        const response = await axios.post(
+            'https://api.openai.com/v1/responses',
+            {
+                model: process.env.OPENAI_SUMMARY_MODEL || 'gpt-5-mini',
+                instructions: 'Write a concise dashboard summary of the user\'s notes in no more than two sentences. Use second person, stay factual, and do not invent details.',
+                input: [
+                    `App: LocoNotion`,
+                    `User: ${username}`,
+                    searchContext,
+                    `Notes currently in view: ${notes.length}`,
+                    'Recent notes:',
+                    noteSnapshot
+                ].join('\n'),
+                max_output_tokens: 90,
+                store: false,
+                text: {
+                    format: {
+                        type: 'text'
+                    }
+                }
+            },
+            {
+                headers: {
+                    Authorization: `Bearer ${process.env.OPENAI_API_KEY}`,
+                    'Content-Type': 'application/json'
+                },
+                timeout: 5000
+            }
+        );
+
+        return extractResponseText(response.data) || fallbackSummary;
+    } catch (error) {
+        console.error('AI summary request failed:', error.response?.data || error.message);
+        return fallbackSummary;
+    }
+}
+
 app.get('/', (req, res) => {
     res.render('pages/login'); //this will call the /login route in the API
 });
@@ -176,11 +285,12 @@ app.get('/home', auth, async (req, res, next) => {
     try {
         const user_id = req.session.user.user_id;
         const notes = await db.any(
-            'SELECT * FROM notes WHERE user_id = $1 ORDER BY time_made DESC LIMIT 5',
+            'SELECT * FROM notes WHERE user_id = $1 ORDER BY time_made DESC LIMIT 10',
             [user_id]
         );
-        const formattedNotes = formatNotes(notes);
-        res.render('pages/home', { greeting, notes: formattedNotes });
+        const noteSummary = await generateNoteSummary(notes, req.session.user.username);
+        const formattedNotes = formatNotes(notes.slice(0, 5));
+        res.render('pages/home', { greeting, notes: formattedNotes, noteSummary });
     } catch (error) {
         next(error);
     }
@@ -227,7 +337,8 @@ app.get('/notes', auth, async (req, res, next) => {
     if (!searchString) {
         try {
             const notes = await db.any(`SELECT * FROM notes WHERE user_id = $1 ORDER BY time_made DESC`, [user_id]);
-            return res.render('pages/notes', { notes: formatNotes(notes), search: '' });
+            const noteSummary = await generateNoteSummary(notes, req.session.user.username);
+            return res.render('pages/notes', { notes: formatNotes(notes), search: '', noteSummary });
         } catch (error) {
             return next(error);
         }
@@ -309,7 +420,8 @@ app.get('/notes', auth, async (req, res, next) => {
 
     try { // attempt to fetch notes based on search criteria, if the search string is malformed it may cause an error, so we catch it and send to global handler.
         const notes = await db.any(query, params);
-        res.render('pages/notes', { notes: formatNotes(notes), search: searchString });
+        const noteSummary = await generateNoteSummary(notes, req.session.user.username, searchString);
+        res.render('pages/notes', { notes: formatNotes(notes), search: searchString, noteSummary });
     } catch (error) {
         next(error);
     }
