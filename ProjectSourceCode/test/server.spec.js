@@ -140,5 +140,29 @@ describe('Home Route Authentication Tests', () => {
         expect(res).to.have.status(200);
         expect(res.text).to.include('Good'); // Checks for your "Good Morning/Evening" greeting
         expect(res.text).to.include(testUser.username);
+        expect(res.text).to.include('AI Summary');
+    });
+});
+
+describe('Notes Summary Render Tests', () => {
+    let agent;
+    const testUser = {
+        username: 'ExtraCreditUser',
+        password: 'password123',
+    };
+
+    beforeEach(() => {
+        agent = chai.request.agent(server);
+    });
+
+    it('positive: /notes. Should render the AI summary card for authenticated users', async () => {
+        await agent
+            .post('/login')
+            .send(testUser);
+
+        const res = await agent.get('/notes');
+
+        expect(res).to.have.status(200);
+        expect(res.text).to.include('AI Summary');
     });
 });
