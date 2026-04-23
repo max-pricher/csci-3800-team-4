@@ -17,6 +17,6 @@ Instructions on how to run the application locally.
 -Docker compose up
 -Visit localhost:3000
 
-How to run the tests
+How to run the tests: Tests will auto run when running the web service.  Run npm test in your terminal if not.
 
 Link to the deployed application: https://csci-3800-team-4-0k2u.onrender.com
