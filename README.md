@@ -19,4 +19,4 @@ Instructions on how to run the application locally.
 
 How to run the tests
 
-Link to the deployed application
+Link to the deployed application: https://csci-3800-team-4-0k2u.onrender.com
