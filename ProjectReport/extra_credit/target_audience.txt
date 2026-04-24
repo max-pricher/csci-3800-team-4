@@ -1,5 +1,0 @@
-Target Audience
-
-The primary target audience for this application is college students who need a simple way to keep personal notes, small tasks, and related tags in one place. This audience fits the current feature set because the project already centers on account-based note creation, organization, and task tracking.
-
-The application is especially useful for students managing several classes at once, because they often switch between lecture notes, reminders, and short to-do items throughout the day. Instead of using separate lightweight tools for each need, this project aims to give them one focused workspace for storing and organizing academic information.
