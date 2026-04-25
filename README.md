@@ -2,10 +2,15 @@
 our final project repository
 
 Brief Application description
-Contributors - In this case, it will be the team Members
+Contributors - Max Pricher, Jacob Hansen, Aubrey Leavenworth, Giovanni Palazzolo
 Technology Stack used for the project
+End Users: Browser/Web Client
+Back End: NodeJS
+Front End: HandleBars
+Database: PostgreSQL
+External: Docker
 
-Prerequisites to run the application - Any software that needs to be installed to run the application
+Prerequisites to run the application
 -Docker Desktop
 -Any browser
 
