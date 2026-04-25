@@ -1,0 +1,254 @@
+Purpose
+This file documents how generative AI was used to help integrate the OpenAI API into our final project. The goal was not to have ChatGPT write the entire project, but to use it as a coding assistant for planning, debugging, and explaining the safest way to add an AI-powered summary feature to our existing NodeJS, Express, Handlebars, PostgreSQL, and Docker application.
+
+Important Security Note
+The actual OpenAI API key was stored locally in:
+
+ProjectSourceCode/.env
+
+The key was not meant to be committed to GitHub. The repository should only include a template entry in:
+
+ProjectSourceCode/.env.example
+
+Example:
+
+OPENAI_API_KEY=
+OPENAI_SUMMARY_MODEL=gpt-5-mini
+
+Prompt 1:
+I have a NodeJS Express app for a notes project. Users can create notes, view notes, and search notes. I want to add an AI summary to the home page and notes page. What is a safe way to do this without exposing my OpenAI API key to the browser?
+
+ChatGPT Response:
+ChatGPT explained that the API request should happen on the server side, not in frontend JavaScript. It recommended storing the API key in a .env file and accessing it through process.env.OPENAI_API_KEY. It also suggested creating a helper function that accepts the user's notes, builds a short text snapshot, sends that to the OpenAI Responses API, and returns either the AI response or a fallback summary.
+
+How I used it:
+I added server-side helper functions in ProjectSourceCode/src/index.js, including:
+- trimNoteText()
+- extractResponseText()
+- buildFallbackNoteSummary()
+- generateNoteSummary()
+
+The main API key check happens before making the request:
+
+if (!notes.length || !process.env.OPENAI_API_KEY) {
+    return fallbackSummary;
+}
+
+This prevents the app from crashing if the API key is missing.
+
+------------------------------------------------------------
+
+Prompt 2:
+Can you help me write a function that summarizes a user's notes, but only sends a small amount of note data to the API? I do not want to send the entire database or too much private user content.
+
+ChatGPT Response:
+ChatGPT suggested limiting the notes sent to the API and trimming each title and body. It recommended sending only recent notes and using a concise instruction so the model would produce a dashboard-style summary.
+
+How I used it:
+In generateNoteSummary(), I limited the API input to the first 10 notes:
+
+const noteSnapshot = notes
+    .slice(0, 10)
+    .map((note, index) => {
+        const title = trimNoteText(note.title, 80) || 'Untitled note';
+        const body = trimNoteText(note.body, 220) || 'No body text.';
+        ...
+    })
+    .join('\n');
+
+This keeps the request smaller and avoids sending unnecessary data.
+
+------------------------------------------------------------
+
+Prompt 3:
+What OpenAI endpoint should I call from a Node server using axios, and what should the request roughly look like?
+
+ChatGPT Response:
+ChatGPT recommended using an axios.post() request to the OpenAI Responses API endpoint:
+
+https://api.openai.com/v1/responses
+
+It showed the general structure:
+- model
+- instructions
+- input
+- max_output_tokens
+- store: false
+- headers with Authorization: Bearer process.env.OPENAI_API_KEY
+
+How I used it:
+I implemented the API call in ProjectSourceCode/src/index.js:
+
+const response = await axios.post(
+    'https://api.openai.com/v1/responses',
+    {
+        model: process.env.OPENAI_SUMMARY_MODEL || 'gpt-5-mini',
+        instructions: 'Write a concise dashboard summary of the user\'s notes in no more than two sentences. Use second person, stay factual, and do not invent details.',
+        input: [
+            `App: LocoNotion`,
+            `User: ${username}`,
+            searchContext,
+            `Notes currently in view: ${notes.length}`,
+            'Recent notes:',
+            noteSnapshot
+        ].join('\n'),
+        max_output_tokens: 90,
+        store: false,
+        text: {
+            format: {
+                type: 'text'
+            }
+        }
+    },
+    {
+        headers: {
+            Authorization: `Bearer ${process.env.OPENAI_API_KEY}`,
+            'Content-Type': 'application/json'
+        },
+        timeout: 5000
+    }
+);
+
+------------------------------------------------------------
+
+Prompt 4:
+How do I make sure the app still works if the OpenAI API call fails, times out, or the key is missing?
+
+ChatGPT Response:
+ChatGPT recommended using a fallback summary and wrapping the API request in a try/catch block. It also suggested setting a timeout so the page does not hang forever if the API is slow.
+
+How I used it:
+I added a fallback summary function:
+
+function buildFallbackNoteSummary(notes, searchString = '') {
+    if (!notes.length) {
+        return searchString
+            ? `No notes match "${searchString}" right now. Try a different search to see a summary here.`
+            : 'You do not have any notes yet. Create your first note to see an AI summary here.';
+    }
+
+    const latestNote = notes[0];
+    ...
+}
+
+Then in the catch block:
+
+catch (error) {
+    console.error('AI summary request failed:', error.response?.data || error.message);
+    return fallbackSummary;
+}
+
+This means the application still works even if the OpenAI request fails.
+
+------------------------------------------------------------
+
+Prompt 5:
+The OpenAI response format might return output_text, but it might also return text inside an output array. Can you help me parse both possibilities?
+
+ChatGPT Response:
+ChatGPT recommended writing a small helper function that first checks responseData.output_text and then falls back to checking responseData.output[].content[] for output_text items.
+
+How I used it:
+I added this function:
+
+function extractResponseText(responseData) {
+    if (typeof responseData?.output_text === 'string' && responseData.output_text.trim()) {
+        return responseData.output_text.trim();
+    }
+
+    if (!Array.isArray(responseData?.output)) {
+        return '';
+    }
+
+    return responseData.output
+        .flatMap(item => Array.isArray(item.content) ? item.content : [])
+        .filter(content => content.type === 'output_text' && typeof content.text === 'string')
+        .map(content => content.text.trim())
+        .join(' ')
+        .trim();
+}
+
+This made the integration more reliable because it does not assume only one possible response shape.
+
+------------------------------------------------------------
+
+Prompt 6:
+Where should I call the generateNoteSummary function in my routes?
+
+ChatGPT Response:
+ChatGPT recommended calling it after retrieving the notes from PostgreSQL and before rendering the Handlebars page. The generated summary should then be passed into res.render() as a variable like noteSummary.
+
+How I used it:
+On the home page route, I added:
+
+const noteSummary = await generateNoteSummary(notes, req.session.user.username);
+res.render('pages/home', { greeting, notes: formattedNotes, noteSummary });
+
+On the notes page route, I added:
+
+const noteSummary = await generateNoteSummary(notes, req.session.user.username, searchString);
+res.render('pages/notes', { notes: formatNotes(notes), search: searchString, noteSummary });
+
+This allowed the AI summary to show up on both the home dashboard and the notes page.
+
+------------------------------------------------------------
+
+Prompt 7:
+What should I put in my README so someone else can run this feature locally?
+
+ChatGPT Response:
+ChatGPT recommended documenting that the user needs to create a .env file from .env.example and optionally set OPENAI_API_KEY if they want AI summaries enabled. It also recommended making the feature optional so the app can still run without the key.
+
+How I used it:
+The README instructions explain:
+- Download the repository
+- Navigate to /ProjectSourceCode
+- Create a .env file using .env.example
+- Set OPENAI_API_KEY if homepage and notes-page AI summaries are desired
+- Run docker compose up
+- Visit localhost:3000
+
+This keeps the setup clear for graders or teammates.
+
+------------------------------------------------------------
+
+Files / Locations Affected
+------------------------------------------------------------
+
+Actual local key entry:
+ProjectSourceCode/.env line 5
+
+Template env entries:
+ProjectSourceCode/.env.example line 5
+ProjectSourceCode/.env.example line 6
+
+README note:
+README.md line 21
+
+Code that checks for the key:
+ProjectSourceCode/src/index.js line 142
+
+OpenAI API call:
+ProjectSourceCode/src/index.js line 166
+
+Model selection:
+ProjectSourceCode/src/index.js line 168
+
+Authorization header using the key:
+ProjectSourceCode/src/index.js line 188
+
+------------------------------------------------------------
+Summary of How GenAI Helped
+------------------------------------------------------------
+
+Generative AI helped me reason through the API integration process, especially around:
+- keeping the API key server-side
+- using environment variables instead of hardcoding secrets
+- building a safe fallback summary
+- limiting how much note data is sent to the model
+- calling the OpenAI Responses API with axios
+- parsing the response text reliably
+- making the AI feature optional so the app still works without a key
+- documenting the setup in the README
+
+The final implementation was integrated into our existing Express routes and PostgreSQL note workflow. ChatGPT was used as a coding assistant and debugging guide, while the project code was adapted to fit our specific application structure.
